@@ -47,6 +47,7 @@ public class RequestJwtFilter extends OncePerRequestFilter
         //首先确认uri，直接跳过无需验证的路径
         String uri = request.getRequestURI();
         if(noVerify(uri)) {
+            requestLogServiceImpl.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"200","无需拦截",uri,null,null,null));
             doFilter(request, response, filterChain);
             return;
         }
