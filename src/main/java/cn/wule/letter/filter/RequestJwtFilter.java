@@ -5,6 +5,8 @@ import cn.wule.letter.log.service.Impl.RequestLogService;
 import cn.wule.letter.model.JwtUserInfo;
 import cn.wule.letter.model.ResponseModel;
 import cn.wule.letter.model.log.RequestLog;
+import cn.wule.letter.model.user.User;
+import cn.wule.letter.user.service.UserPermissionService;
 import cn.wule.letter.util.JsonUtil;
 import cn.wule.letter.util.JwtUtil;
 import cn.wule.letter.util.RedisUtil;
@@ -17,10 +19,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.codec.cbor.Jackson2CborDecoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  *  对每个请求的JWT进行验证
@@ -37,6 +43,8 @@ public class RequestJwtFilter extends OncePerRequestFilter
     JwtUtil jwtUtil;
     @Resource
     RequestLogService requestLogService;
+    @Resource
+    UserPermissionService userPermissionService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -68,13 +76,24 @@ public class RequestJwtFilter extends OncePerRequestFilter
             //判断redis中的jwt是否与请求中的jwt一致，不一致则直接拒绝
             if(redisUtil.getJwt(userInfo).equals(jwt)){
                 //获取用户权限信息，然后放入安全上下文。
-                    //放行
-                    doFilter(request, response, filterChain);
+                User user = User.builder().userId(userInfo.getUseId()).userName(userInfo.getUserName()).build();
+                //获取用户权限信息
+                List<SimpleGrantedAuthority> authList = userPermissionService.getUserPermissionByUserId(userInfo.getUseId()).stream().map(SimpleGrantedAuthority::new).toList();
+                //注入用户权限信息,创建token
+                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, null, authList);
+                //把token放到安全上下文里面
+                SecurityContextHolder.getContext().setAuthentication(token);
+                doFilter(request, response, filterChain);
+                request.setAttribute("jwt", jwt);
+                //记录日志
+                requestLogService.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"200","请求成功",uri,userInfo.getUserName(), userInfo.getUseId(),null));
             }else {
+                //jwt不一致，直接拒绝
                 jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
                 requestLogService.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"401","授权信息已失效，请重新登录",uri,null,null,null));
             }
         }else {
+            //redis中不存在jwt缓存，直接拒绝
             jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
             requestLogService.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"401","授权信息已失效，请重新登录",uri,null,null,null));
         }
