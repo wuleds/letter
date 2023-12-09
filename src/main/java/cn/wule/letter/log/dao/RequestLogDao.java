@@ -14,7 +14,7 @@ public interface RequestLogDao
     /**
      * 请求过滤日志
      */
-    @Insert("insert into RequestLog(id,ip,host,uri,code,msg,user_name,user_id,user_info) " +
+    @Insert("insert into request_log(id,ip,host,uri,code,msg,user_name,user_id,user_info) " +
             "values(#{id},#{ip},#{host},#{uri},#{code},#{msg},#{userName},#{userId},#{userInfo})")
     void insertLog(String id,String ip,String host,String uri,String code,String msg,String userName,String userId,String userInfo);
 }

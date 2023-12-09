@@ -1,4 +1,3 @@
-/*
 package cn.wule.letter.config;
 //汉江师范学院 数计学院 吴乐创建于2023/11/10 23:01
 
@@ -17,20 +16,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-*/
-/**
- * @author wule
- *//*
-
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig{
-    @Resource
+    /*@Resource
     private AppAuthenticationSuccessHandler appAuthenticationSuccessHandler;
     @Resource
     private AppAuthenticationFailHandler appAuthenticationFailHandler;
     @Resource
-    private AppLogoutSuccessHandler appLogoutSuccessHandler;
+    private AppLogoutSuccessHandler appLogoutSuccessHandler;*/
     @Resource
     private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
     @Resource
@@ -39,8 +33,6 @@ public class WebSecurityConfig{
     private RequestJwtFilter requestJwtFilter;
     @Resource
     private AppAccessDenyHandler appAccessDenyHandler;
-   // @Resource
-    //private ValidateCodeFilter validateCodeFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -51,27 +43,27 @@ public class WebSecurityConfig{
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(
                 (authorize) -> authorize
-                .requestMatchers("/captcha").permitAll()
-                .requestMatchers("/root/**").hasAuthority("root:all")
+                /*.requestMatchers("/root/**").hasAuthority("root:all")
                 .requestMatchers("/user/add").hasAuthority("user:add")
-                .requestMatchers("/user/delete").hasAuthority("user:del")
+                .requestMatchers("/user/delete").hasAuthority("user:del")*/
+                        .requestMatchers("/signin").permitAll()
                 .anyRequest()
                 .authenticated());
         http.httpBasic(withDefaults());
         http.formLogin((formLogin) ->
                 formLogin
-                        .loginPage("/toLogin") //配置登录接口
-                        .usernameParameter("userName") //配置登录用户名参数
+                        //.loginPage("/toLogin") //配置登录接口
+                        .usernameParameter("userId") //配置登录用户名参数
                         .passwordParameter("password") //配置登录密码参数
                         .loginProcessingUrl("/login/doLogin") //单击登录的接口
-                        .failureForwardUrl("/toLogin").permitAll() //登录失败的接口
-                        .successForwardUrl("/main") //登录成功的接口
+                        //.failureForwardUrl("/toLogin").permitAll() //登录失败的接口
+                        //.successForwardUrl("/main") //登录成功的接口
                         .successHandler(customAuthenticationSuccessHandler) //登录成功的处理器
                         .permitAll());
         http.logout((logout)->
                 logout
                         .logoutUrl("/logout") //配置登出接口
-                        .logoutSuccessUrl("/toLogin") //登出成功的接口
+                        //.logoutSuccessUrl("/toLogin") //登出成功的接口
                         .logoutSuccessHandler(customLogoutSuccessHandler) //登出成功的处理器
                         .permitAll());
         http.exceptionHandling((exceptionHandling) -> exceptionHandling.accessDeniedHandler(appAccessDenyHandler));
@@ -85,11 +77,4 @@ public class WebSecurityConfig{
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
-
-    */
-/*@Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("/ignore1", "/ignore2");
-    }*//*
-
-}*/
+}

@@ -4,14 +4,17 @@ package cn.wule.letter.util;
 import cn.wule.letter.model.JwtUserInfo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
 public class RedisUtil
 {
-    @Resource
+    @Resource(name = "stringRedisTemplate")
     StringRedisTemplate redisTemplate;
     @Resource
     JwtUtil jwtUtil;
@@ -20,11 +23,11 @@ public class RedisUtil
      * 添加jwt缓存
      * @param jwt JWT
      */
-    public void addJwtRedisCache(String jwt){
+    public void addJwtRedisCache(String jwt, int expiration){
         //获取jwt中的用户信息
         String userId = jwtUtil.verifyJWT(jwt).getUseId();
         //将jwt存入redis中
-        redisTemplate.opsForValue().set(userId,jwt);
+        redisTemplate.opsForValue().set(userId,jwt,expiration, TimeUnit.MILLISECONDS);
     }
 
     /**

@@ -4,12 +4,14 @@ package cn.wule.letter.user.service.impl;
 import cn.wule.letter.user.dao.UserPermissionDao;
 import cn.wule.letter.user.service.UserPermissionService;
 import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * 用户权限查询服务层实现类
  */
+@Service
 public class UserPermissionServiceImpl implements UserPermissionService {
     @Resource
     UserPermissionDao userPermissionDao;

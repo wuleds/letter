@@ -1,9 +1,7 @@
-/*
 package cn.wule.letter.config;
 //汉江师范学院 数计学院 吴乐创建于2023/11/13 17:24
 
-import cn.wule.requestsecurity.vo.HttpRequest;
-import com.google.gson.Gson;
+import cn.wule.letter.util.JsonUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,31 +12,19 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
-*/
 /**
- * @author wule
- *//*
-
+ * 自定义拒绝访问处理器
+ */
 @Component
 @Slf4j
 public class AppAccessDenyHandler implements AccessDeniedHandler
 {
     @Resource
-    private Gson gson;
+    private JsonUtil jsonUtil;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        HttpRequest<String> httpRequest = HttpRequest.<String>builder()
-                .code(-1)
-                .message("拒绝访问")
-                .build();
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
-        PrintWriter printWriter = response.getWriter();
-        printWriter.write(gson.toJson(httpRequest));
-        printWriter.flush();
-        printWriter.close();
+        jsonUtil.writeStringJsonToResponse(response,"403","拒绝访问",null);
     }
-}*/
+}
