@@ -1,9 +1,8 @@
 package cn.wule.letter.filter;
 //汉江师范学院 数计学院 吴乐创建于2023/12/9 00:29
 
-import cn.wule.letter.log.service.Impl.RequestServiceImpl;
+import cn.wule.letter.log.service.Impl.RequestLogServiceImpl;
 import cn.wule.letter.model.JwtUserInfo;
-import cn.wule.letter.model.log.RequestLog;
 import cn.wule.letter.model.user.User;
 import cn.wule.letter.user.service.UserPermissionService;
 import cn.wule.letter.util.JsonUtil;
@@ -15,6 +14,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,25 +38,26 @@ public class RequestJwtFilter extends OncePerRequestFilter
     @Resource
     JwtUtil jwtUtil;
     @Resource
-    RequestServiceImpl requestLogServiceImpl;
+    RequestLogServiceImpl requestLogServiceImpl;
     @Resource
     UserPermissionService userPermissionService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         //首先确认uri，直接跳过无需验证的路径
         String uri = request.getRequestURI();
         if(noVerify(uri)) {
-            requestLogServiceImpl.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"200","无需拦截",uri,null,null,null));
+            log.info("无需拦截，ip:{}，主机名:{}",request.getRemoteAddr(),request.getRemoteHost());
             doFilter(request, response, filterChain);
+            requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"200","无需拦截","","","");
             return;
         }
         //从请求头获取授权信息，如果没有则直接拒绝
         String strAuth = request.getHeader("Authorization");
         if (strAuth == null) {
             jsonUtil.writeStringJsonToResponse(response,"401","没有授权信息，请登录","");
-            log.info("无授权信息登录，ip:{}，主机名:{}",request.getRemoteAddr(),request.getRemoteHost());
-            requestLogServiceImpl.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"401","没有授权信息，请登录",uri,null,null,null));
+            log.info("无授权信息登录，uri:{},ip:{}，主机名:{}",uri,request.getRemoteAddr(),request.getRemoteHost());
+            requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"401","没有授权信息，请登录","","","");
             return;
         }
         //获取JWT
@@ -65,7 +66,7 @@ public class RequestJwtFilter extends OncePerRequestFilter
         JwtUserInfo userInfo = jwtUtil.verifyJWT(jwt);
         if(userInfo == null){
             jsonUtil.writeStringJsonToResponse(response,"401","授权信息不合法，请重新登录","");
-            requestLogServiceImpl.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"401","授权信息不合法，请重新登录",uri,null,null,null));
+            requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"401","授权信息不合法，请重新登录","","","");
             return;
         }
         //判断redis中是否存在jwt缓存，没有则直接拒绝
@@ -74,32 +75,32 @@ public class RequestJwtFilter extends OncePerRequestFilter
             if(redisUtil.getJwt(userInfo).equals(jwt)){
                 //jwt一致，放行
                 //获取用户权限信息，然后放入安全上下文。
-                User user = User.builder().userId(userInfo.getUseId()).userName(userInfo.getUserName()).build();
+                User user = User.builder().userId(userInfo.getUserId()).userName(userInfo.getUserName()).build();
                 //获取用户权限信息
-                List<SimpleGrantedAuthority> authList = userPermissionService.getUserPermissionByUserId(userInfo.getUseId()).stream().map(SimpleGrantedAuthority::new).toList();
+                List<SimpleGrantedAuthority> authList = userPermissionService.getUserPermissionByUserId(userInfo.getUserId()).stream().map(SimpleGrantedAuthority::new).toList();
                 //注入用户权限信息,创建token
-                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, null, authList);
+                UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, "", authList);
                 //把token放到安全上下文里面
                 SecurityContextHolder.getContext().setAuthentication(token);
                 doFilter(request, response, filterChain);
                 request.setAttribute("jwt", jwt);
                 //记录日志
-                requestLogServiceImpl.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"200","请求成功",uri,userInfo.getUserName(), userInfo.getUseId(),null));
+                requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"200","请求成功",userInfo.getUserName(), userInfo.getUserId(),"");
             }else {
                 //jwt不一致，直接拒绝
                 jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
-                requestLogServiceImpl.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"401","授权信息已失效，请重新登录",uri,null,null,null));
+                requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"401","授权信息已失效，请重新登录",userInfo.getUserName(), userInfo.getUserId(), "");
             }
         }else {
             //redis中不存在jwt缓存，直接拒绝
             jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
-            requestLogServiceImpl.insertLog(new RequestLog(null,request.getRemoteAddr(),request.getRemoteHost(),"401","授权信息已失效，请重新登录",uri,null,null,null));
+            requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"401","授权信息已失效，请重新登录",userInfo.getUserName(), userInfo.getUserId(), "");
         }
     }
 
     public boolean noVerify(String uri){
         return switch (uri) {
-            case "/toLogin", "/signin", "/login/doLogin" -> true;
+            case "/forget", "/user/signin", "/user/login" -> true;
             default -> false;
         };
     }

@@ -6,15 +6,20 @@ import cn.wule.letter.model.user.User;
 import cn.wule.letter.user.dao.UserDao;
 import cn.wule.letter.user.dao.UserInfoDao;
 import cn.wule.letter.user.service.UserService;
+import cn.wule.letter.util.BCryptPwdUtil;
 import cn.wule.letter.util.UserUtil;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
     @Resource
     private UserDao userDao;
@@ -46,7 +51,7 @@ public class UserServiceImpl implements UserService {
              }
         }while (newId == -1);
         //密码加密
-        String password = new BCryptPasswordEncoder().encode(userPassword);
+        String password = BCryptPwdUtil.encode(userPassword);
         String userId = String.valueOf(newId);
         //添加到用户表
         userDao.addNormalUser(userId,userName,password);
@@ -58,5 +63,22 @@ public class UserServiceImpl implements UserService {
         //TODO 用户的群组表
         //TODO 用户的订阅频道表
         return userId;
+    }
+
+    /**
+     * 查询用户加密后的密码，然后与输入的密码进行比较
+     * @return boolean true则账号和密码正确，false则账号或密码错误
+     */
+    @Override
+    public User checkUser(String userId,String password) {
+        log.info("用户登录，用户id：{}",userId);
+        String encodePassword = userDao.checkUser(userId);
+        //将密码与加密后的密码进行比较
+        if(BCryptPwdUtil.matches(password,encodePassword)){
+            //获取用户信息
+            return userDao.getUserById(userId);
+        }else {
+            return null;
+        }
     }
 }

@@ -27,8 +27,12 @@ public class JwtUtil
     @Value("${jwt.issuer}")
     String issuer;
 
+    public String createJwtOnMouth(JwtUserInfo jwtUserInfo){
+        long expireTime = 1000L * 60 * 60 * 24 * 30;
+        return createJwt(jwtUserInfo,new Date(),new Date(System.currentTimeMillis() + expireTime));
+    }
     //生成JWT
-    public String createJwt(JwtUserInfo userInfo, Date issueDate, Date expireDate){
+    public String createJwt(JwtUserInfo jwtUserInfo, Date issueDate, Date expireDate){
         Map<String,Object> headerClaims = new HashMap<>();
         //加密算法
         headerClaims.put("alg","HS256");
@@ -42,10 +46,10 @@ public class JwtUtil
                 //签名过期的时间
                 .withExpiresAt(expireDate)
                 //自定义
-                .withClaim("userId",userInfo.getUseId())
-                .withClaim("userName",userInfo.getUserName())
+                .withClaim("userId",jwtUserInfo.getUserId())
+                .withClaim("userName",jwtUserInfo.getUserName())
                 //添加自定义用户信息
-                .withClaim("userInfo",userInfo.getUserInfo());
+                .withClaim("userInfo",jwtUserInfo.getUserInfo());
 
      /*   if(userInfo.getUserInfo() != null){
             if(!userInfo.getUserInfo().isEmpty()) {
@@ -55,7 +59,7 @@ public class JwtUtil
             }
         }*/
         String jwt = builder.sign(Algorithm.HMAC256(secretKey));
-        log.info("jwt:用户ID：{}，用户名:{}，{}",userInfo.getUserName(),userInfo.getUseId(),jwt);
+        log.info("jwt:用户ID：{}，用户名:{}，{}",jwtUserInfo.getUserName(),jwtUserInfo.getUserId(),jwt);
         return jwt;
     }
     //验证JWT,并获取用户信息
@@ -80,7 +84,7 @@ public class JwtUtil
             }
             jwtUserInfo.setUserInfo(userInfo);
         }
-        jwtUserInfo.setUseId(userId);
+        jwtUserInfo.setUserId(userId);
         jwtUserInfo.setUserName(userName);
         return jwtUserInfo;
     }

@@ -14,7 +14,7 @@ public class User
 {
     String userId;
     String userName;
-    String password;
-    String status;
+    String userPassword;
+    String userGroupId;
     String delFlag;
 }

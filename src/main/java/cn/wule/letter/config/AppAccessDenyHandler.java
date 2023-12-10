@@ -25,6 +25,7 @@ public class AppAccessDenyHandler implements AccessDeniedHandler
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+        response.setStatus(403);
         jsonUtil.writeStringJsonToResponse(response,"403","拒绝访问",null);
     }
 }

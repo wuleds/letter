@@ -14,7 +14,7 @@ import java.util.Map;
 @Builder
 public class JwtUserInfo
 {
-    String useId;
+    String userId;
     String userName;
     Map<String,String> userInfo;
 }

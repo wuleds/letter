@@ -10,7 +10,6 @@ import cn.wule.letter.util.JwtUtil;
 import cn.wule.letter.util.RedisUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -46,15 +45,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         List<SimpleGrantedAuthority> authorities = (List<SimpleGrantedAuthority>) userSecurity.getAuthorities();
         List<String> authList = authorities.stream().map(SimpleGrantedAuthority::getAuthority).toList();
         //生成jwt
-        JwtUserInfo userInfo = JwtUserInfo.builder().userName(user.getUserName()).useId(user.getUserId()).build();
+        JwtUserInfo userInfo = JwtUserInfo.builder().userName(user.getUserName()).userId(user.getUserId()).build();
         //设置过期时间
         int expireDate = 1000 * 60 * 60 * 24 * 7;
-        String jwt = jwtUtil.createJwt(userInfo, new Date(), new Date(System.currentTimeMillis() + expireDate));
-        ResponseModel<String> responseModel = ResponseModel.<String>builder()
-                .code("200")
-                .msg("JWT生成成功")
-                .data(jwt)
-                .build();
+        String jwt = jwtUtil.createJwtOnMouth(userInfo);
         //将jwt写入redis，设置过期时间
         redisUtil.addJwtRedisCache(jwt,expireDate);
         //将jwt写入响应

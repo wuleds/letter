@@ -7,10 +7,8 @@ import lombok.*;
  * 注销登录请求日志
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class LogoutLog implements LogBase {
+public class LogoutLog {
     String id;
     String ip;
     String host;
@@ -19,4 +17,5 @@ public class LogoutLog implements LogBase {
     String userName;
     String userId;
     String userInfo;
+    String createDate;
 }

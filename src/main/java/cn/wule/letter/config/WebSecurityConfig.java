@@ -47,18 +47,18 @@ public class WebSecurityConfig{
                 .requestMatchers("/user/add").hasAuthority("user:add")
                 .requestMatchers("/user/delete").hasAuthority("user:del")*/
                         .requestMatchers("/signin").permitAll()
+                        .requestMatchers("/api/user/login").permitAll()
                 .anyRequest()
                 .authenticated());
-        http.httpBasic(withDefaults());
         http.formLogin((formLogin) ->
                 formLogin
-                        //.loginPage("/toLogin") //配置登录接口
+                        //.loginPage("/ll").permitAll() //配置登录接口
                         .usernameParameter("userId") //配置登录用户名参数
                         .passwordParameter("password") //配置登录密码参数
-                        .loginProcessingUrl("/login/doLogin") //单击登录的接口
+                        .loginProcessingUrl("/api/user/login").permitAll() //单击登录的接口
                         //.failureForwardUrl("/toLogin").permitAll() //登录失败的接口
                         //.successForwardUrl("/main") //登录成功的接口
-                        .successHandler(customAuthenticationSuccessHandler) //登录成功的处理器
+                        //.successHandler(customAuthenticationSuccessHandler) //登录成功的处理器
                         .permitAll());
         http.logout((logout)->
                 logout
@@ -72,6 +72,7 @@ public class WebSecurityConfig{
         //禁止同源保护
         return http.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder(){

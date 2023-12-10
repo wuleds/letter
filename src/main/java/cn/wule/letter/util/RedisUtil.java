@@ -4,7 +4,6 @@ package cn.wule.letter.util;
 import cn.wule.letter.model.JwtUserInfo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +24,7 @@ public class RedisUtil
      */
     public void addJwtRedisCache(String jwt, int expiration){
         //获取jwt中的用户信息
-        String userId = jwtUtil.verifyJWT(jwt).getUseId();
+        String userId = jwtUtil.verifyJWT(jwt).getUserId();
         //将jwt存入redis中
         redisTemplate.opsForValue().set(userId,jwt,expiration, TimeUnit.MILLISECONDS);
     }
@@ -36,7 +35,7 @@ public class RedisUtil
      */
     public void deleteJwtRedisCache(String jwt){
         //获取jwt中的用户信息
-        String userId = jwtUtil.verifyJWT(jwt).getUseId();
+        String userId = jwtUtil.verifyJWT(jwt).getUserId();
         //将jwt存入redis中
         redisTemplate.delete(userId);
     }
@@ -47,10 +46,10 @@ public class RedisUtil
      * @return boolean
      */
     public boolean isJwtExist(JwtUserInfo userInfo) {
-        return redisTemplate.opsForValue().get(userInfo.getUseId()) != null;
+        return redisTemplate.opsForValue().get(userInfo.getUserId()) != null;
     }
 
     public String getJwt(JwtUserInfo userInfo){
-        return redisTemplate.opsForValue().get(userInfo.getUseId());
+        return redisTemplate.opsForValue().get(userInfo.getUserId());
     }
 }
