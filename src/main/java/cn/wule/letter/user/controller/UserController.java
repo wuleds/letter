@@ -3,10 +3,12 @@ package cn.wule.letter.user.controller;
 
 import cn.wule.letter.log.service.LoginLogService;
 import cn.wule.letter.model.JwtUserInfo;
+import cn.wule.letter.model.log.LoginLog;
 import cn.wule.letter.model.user.User;
 import cn.wule.letter.user.service.UserService;
 import cn.wule.letter.util.JsonUtil;
 import cn.wule.letter.util.JwtUtil;
+import cn.wule.letter.util.RedisUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/user")
 @Slf4j
 public class UserController
 {
@@ -27,10 +29,12 @@ public class UserController
     @Resource
     private JwtUtil jwtUtil;
     @Resource
+    private RedisUtil redisUtil;
+    @Resource
     private LoginLogService loginLogService;
 
     @PostMapping("/login")
-    public String login(User user, HttpServletRequest request){
+    public String login(@RequestBody User user, HttpServletRequest request){
         log.info("用户登录");
         String code = "500";
         String msg = "服务器内部错误";
@@ -41,7 +45,7 @@ public class UserController
         }else if (user.getUserId() == null || user.getUserPassword() == null) {
             code = "400";
             msg = "User对象参数为空";
-        }else if(user.getUserId().length() < 6 || user.getUserId().length() > 16
+        }else if(user.getUserId().length() < 5 || user.getUserId().length() > 16
                 || user.getUserPassword().length() < 6 || user.getUserPassword().length() > 128) {
             code = "400";
             msg = "账号或密码的长度不符合要求";
@@ -54,12 +58,22 @@ public class UserController
                 String userId = userCheck.getUserId();
                 JwtUserInfo jwtUserInfo = JwtUserInfo.builder().userId(userId).userName(userName).build();
                 String jwt = jwtUtil.createJwtOnMouth(jwtUserInfo);
-                //返回JWT
                 code = "200";
                 msg = "登录成功";
                 data = jwt;
+                LoginLog loginLog = LoginLog.builder()
+                        .userId(userId)
+                        .userName(userName)
+                        .ip(request.getRemoteAddr())
+                        .host(request.getRemoteHost())
+                        .code("200")
+                        .msg("登录成功").build();
+                //添加redis记录
+                redisUtil.addJitRedisCacheOnMouth(jwt);
+                //可能存在老的记录，要删除
+                redisUtil.deleteJwtRedisCache(jwt);
                 //记录日志
-                loginLogService.insertLog(userId,userName,request.getRemoteAddr(),request.getRemoteHost(),"200","登录成功");
+                loginLogService.insertLog(loginLog);
             }
         }
         return jsonUtil.createResponseModelJsonByString(code, msg, data);

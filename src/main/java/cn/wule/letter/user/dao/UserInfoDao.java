@@ -17,8 +17,8 @@ public interface UserInfoDao {
     @Insert("insert into user_info(user_id) values(#{userId})")
     void addUserInfo(String userId);
 
-    @Update("update user_info set user_sex = #{userInfo.userSex},user_birthday = #{userInfo.userBirthday}," +
-            "user_address = #{userInfo.userAddress},user_phone = #{userInfo.userPhone}," +
-            "user_email = #{userInfo.userEmail} where user_id = #{userInfo.userId}")
-    boolean updateUserInfo(UserInfo userInfo);
+    @Update("update user_info set user_sex = #{userSex},user_birthday = #{userBirthday}," +
+            "user_address = #{userAddress},user_phone = #{userPhone}," +
+            "user_email = #{userEmail} where user_id = #{userId}")
+    boolean updateUserInfo(String userId,String userSex,String userBirthday,String userAddress,String userPhone,String userEmail);
 }

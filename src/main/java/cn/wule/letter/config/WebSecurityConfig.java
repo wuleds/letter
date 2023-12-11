@@ -43,23 +43,20 @@ public class WebSecurityConfig{
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(
                 (authorize) -> authorize
-                /*.requestMatchers("/root/**").hasAuthority("root:all")
-                .requestMatchers("/user/add").hasAuthority("user:add")
-                .requestMatchers("/user/delete").hasAuthority("user:del")*/
+                /*.requestMatchers("/root/**").hasAuthority("root:all")*/
                         .requestMatchers("/signin").permitAll()
-                        .requestMatchers("/api/user/login").permitAll()
+                        .requestMatchers("/user/login").permitAll()
                 .anyRequest()
                 .authenticated());
-        http.formLogin((formLogin) ->
-                formLogin
+        http.formLogin(AbstractHttpConfigurer::disable);
                         //.loginPage("/ll").permitAll() //配置登录接口
-                        .usernameParameter("userId") //配置登录用户名参数
-                        .passwordParameter("password") //配置登录密码参数
-                        .loginProcessingUrl("/api/user/login").permitAll() //单击登录的接口
+//                        .usernameParameter("userId") //配置登录用户名参数
+//                        .passwordParameter("password") //配置登录密码参数
+//                        .loginProcessingUrl("/api/user/login").permitAll() //单击登录的接口
                         //.failureForwardUrl("/toLogin").permitAll() //登录失败的接口
                         //.successForwardUrl("/main") //登录成功的接口
                         //.successHandler(customAuthenticationSuccessHandler) //登录成功的处理器
-                        .permitAll());
+
         http.logout((logout)->
                 logout
                         .logoutUrl("/logout") //配置登出接口

@@ -3,6 +3,7 @@ package cn.wule.letter.filter;
 
 import cn.wule.letter.log.service.Impl.RequestLogServiceImpl;
 import cn.wule.letter.model.JwtUserInfo;
+import cn.wule.letter.model.log.RequestLog;
 import cn.wule.letter.model.user.User;
 import cn.wule.letter.user.service.UserPermissionService;
 import cn.wule.letter.util.JsonUtil;
@@ -46,10 +47,23 @@ public class RequestJwtFilter extends OncePerRequestFilter
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         //首先确认uri，直接跳过无需验证的路径
         String uri = request.getRequestURI();
+        RequestLog requestLog = RequestLog.builder()
+                .ip(request.getRemoteAddr())
+                .host(request.getRemoteHost())
+                .uri(uri)
+                .code("")
+                .msg("")
+                .userName("")
+                .userId("")
+                .userInfo("")
+                .build();
+
         if(noVerify(uri)) {
             log.info("无需拦截，ip:{}，主机名:{}",request.getRemoteAddr(),request.getRemoteHost());
             doFilter(request, response, filterChain);
-            requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"200","无需拦截","","","");
+            requestLog.setCode("200");
+            requestLog.setMsg("无需拦截");
+            requestLogServiceImpl.insertLog(requestLog);
             return;
         }
         //从请求头获取授权信息，如果没有则直接拒绝
@@ -57,7 +71,9 @@ public class RequestJwtFilter extends OncePerRequestFilter
         if (strAuth == null) {
             jsonUtil.writeStringJsonToResponse(response,"401","没有授权信息，请登录","");
             log.info("无授权信息登录，uri:{},ip:{}，主机名:{}",uri,request.getRemoteAddr(),request.getRemoteHost());
-            requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"401","没有授权信息，请登录","","","");
+            requestLog.setCode("401");
+            requestLog.setMsg("没有授权信息，请登录");
+            requestLogServiceImpl.insertLog(requestLog);
             return;
         }
         //获取JWT
@@ -66,7 +82,9 @@ public class RequestJwtFilter extends OncePerRequestFilter
         JwtUserInfo userInfo = jwtUtil.verifyJWT(jwt);
         if(userInfo == null){
             jsonUtil.writeStringJsonToResponse(response,"401","授权信息不合法，请重新登录","");
-            requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"401","授权信息不合法，请重新登录","","","");
+            requestLog.setCode("401");
+            requestLog.setMsg("授权信息不合法，请重新登录");
+            requestLogServiceImpl.insertLog(requestLog);
             return;
         }
         //判断redis中是否存在jwt缓存，没有则直接拒绝
@@ -85,16 +103,28 @@ public class RequestJwtFilter extends OncePerRequestFilter
                 doFilter(request, response, filterChain);
                 request.setAttribute("jwt", jwt);
                 //记录日志
-                requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"200","请求成功",userInfo.getUserName(), userInfo.getUserId(),"");
+                requestLog.setCode("200");
+                requestLog.setMsg("请求成功");
+                requestLog.setUserId(userInfo.getUserId());
+                requestLog.setUserName(userInfo.getUserName());
+                requestLogServiceImpl.insertLog(requestLog);
             }else {
                 //jwt不一致，直接拒绝
                 jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
-                requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"401","授权信息已失效，请重新登录",userInfo.getUserName(), userInfo.getUserId(), "");
+                requestLog.setCode("401");
+                requestLog.setMsg("授权信息已失效，请重新登录");
+                requestLog.setUserId(userInfo.getUserId());
+                requestLog.setUserName(userInfo.getUserName());
+                requestLogServiceImpl.insertLog(requestLog);
             }
         }else {
             //redis中不存在jwt缓存，直接拒绝
             jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
-            requestLogServiceImpl.insertLog(request.getRemoteAddr(),request.getRemoteHost(),uri,"401","授权信息已失效，请重新登录",userInfo.getUserName(), userInfo.getUserId(), "");
+            requestLog.setCode("401");
+            requestLog.setMsg("授权信息已失效，请重新登录");
+            requestLog.setUserId(userInfo.getUserId());
+            requestLog.setUserName(userInfo.getUserName());
+            requestLogServiceImpl.insertLog(requestLog);
         }
     }
 

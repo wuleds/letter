@@ -5,5 +5,5 @@ import org.apache.ibatis.annotations.Select;
 
 public interface RequestLogService
 {
-    void insertLog(String ip, String host, String uri, String code, String msg, String userName, String userId, String userInfo);
+    void insertLog(RequestLog requestLog);
 }

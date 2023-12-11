@@ -16,17 +16,6 @@ public class LogoutLogServiceImpl implements LogoutLogService {
 
     @Override
     public void insertLog(String ip, String host, String code, String msg,String userName, String userId, String userInfo) {
-        LogoutLog logoutLog = LogoutLog.builder()
-                .ip(ip)
-                .host(host)
-                .code(code)
-                .msg(msg)
-                .userName(userName)
-                .userId(userId)
-                .userInfo(userInfo)
-                .build();
-        logoutLog.setId(UUIDUtil.getUUID());
-        logoutLog.setCreateDate(NowDate.getNowDate());
-        logoutLogDao.insertLog(logoutLog);
+        logoutLogDao.insertLog(UUIDUtil.getUUID(),ip,host,code,msg,userName,userId,userInfo,NowDate.getNowDate());
     }
 }

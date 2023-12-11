@@ -17,12 +17,16 @@ public class RedisUtil
     StringRedisTemplate redisTemplate;
     @Resource
     JwtUtil jwtUtil;
+    public void addJitRedisCacheOnMouth(String jwt){
+        long expiration = 1000L * 60 * 60 * 24 * 30;
+        addJitRedisCache(jwt,expiration);
+    }
 
     /**
      * 添加jwt缓存
      * @param jwt JWT
      */
-    public void addJwtRedisCache(String jwt, int expiration){
+    public void addJitRedisCache(String jwt, long expiration){
         //获取jwt中的用户信息
         String userId = jwtUtil.verifyJWT(jwt).getUserId();
         //将jwt存入redis中

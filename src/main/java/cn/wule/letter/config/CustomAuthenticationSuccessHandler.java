@@ -2,7 +2,6 @@ package cn.wule.letter.config;
 //汉江师范学院 数计学院 吴乐创建于2023/11/17 17:17
 
 import cn.wule.letter.model.JwtUserInfo;
-import cn.wule.letter.model.ResponseModel;
 import cn.wule.letter.model.user.User;
 import cn.wule.letter.model.user.UserSecurity;
 import cn.wule.letter.util.JsonUtil;
@@ -19,7 +18,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -46,11 +44,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         List<String> authList = authorities.stream().map(SimpleGrantedAuthority::getAuthority).toList();
         //生成jwt
         JwtUserInfo userInfo = JwtUserInfo.builder().userName(user.getUserName()).userId(user.getUserId()).build();
-        //设置过期时间
-        int expireDate = 1000 * 60 * 60 * 24 * 7;
         String jwt = jwtUtil.createJwtOnMouth(userInfo);
         //将jwt写入redis，设置过期时间
-        redisUtil.addJwtRedisCache(jwt,expireDate);
+        redisUtil.addJitRedisCacheOnMouth(jwt);
         //将jwt写入响应
         jsonUtil.writeStringJsonToResponse(response,"200", "JWT生成成功",jwt);
     }

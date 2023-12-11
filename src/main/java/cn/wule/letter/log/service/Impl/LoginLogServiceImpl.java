@@ -14,17 +14,11 @@ public class LoginLogServiceImpl implements LoginLogService {
     @Resource
     private LoginLogDao loginLogDao;
     @Override
-    public void insertLog(String userId, String userName,String ip, String host,String code,String msg) {
-        LoginLog loginLog = LoginLog.builder()
-                .id(UUIDUtil.getUUID())
-                .userId(userId)
-                .userName(userName)
-                .ip(ip)
-                .host(host)
-                .loginDate(NowDate.getNowDate())
-                .code(code)
-                .msg(msg)
-                .build();
-        loginLogDao.insertLog(loginLog);
+    public void insertLog(LoginLog loginLog) {
+        loginLog.setId(UUIDUtil.getUUID());
+        loginLog.setLoginDate(NowDate.getNowDate());
+        loginLogDao.insertLog(UUIDUtil.getUUID(),loginLog.getUserId(),loginLog.getUserName(),
+                loginLog.getLoginDate(),loginLog.getIp(),loginLog.getHost(),loginLog.getCode(),
+                loginLog.getMsg());
     }
 }

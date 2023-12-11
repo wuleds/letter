@@ -18,19 +18,9 @@ public class RequestLogServiceImpl implements RequestLogService {
     RequestLogDao requestLogDao;
 
     @Override
-    public void insertLog(String ip, String host, String uri, String code, String msg, String userName, String userId, String userInfo) {
-        RequestLog requestLog = RequestLog.builder()
-                .id(UUIDUtil.getUUID())
-                .ip(ip)
-                .host(host)
-                .uri(uri)
-                .code(code)
-                .msg(msg)
-                .userName(userName)
-                .userId(userId)
-                .userInfo(userInfo)
-                .createDate(NowDate.getNowDate())
-                .build();
-        requestLogDao.insertLog(requestLog);
+    public void insertLog(RequestLog requestLog) {
+        requestLogDao.insertLog(UUIDUtil.getUUID(),requestLog.getIp(),requestLog.getHost(),
+                requestLog.getUri(),requestLog.getCode(),requestLog.getMsg(),requestLog.getUserName(),
+                requestLog.getUserId(),requestLog.getUserInfo() ,NowDate.getNowDate());
     }
 }
