@@ -26,6 +26,7 @@ test
 application-production.yml
 application-development.yml
 application.yml
+.fastRequest
 
 ### NetBeans ###
 /nbproject/private/

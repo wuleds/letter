@@ -1,10 +1,17 @@
 package cn.wule.letter.user.controller;
 //汉江师范学院 数计学院 吴乐创建于2023/12/10 0:47
 
+import cn.wule.letter.authCode.service.AuthCodeService;
 import cn.wule.letter.log.service.LoginLogService;
+import cn.wule.letter.log.service.SigninLogService;
 import cn.wule.letter.model.JwtUserInfo;
 import cn.wule.letter.model.log.LoginLog;
+import cn.wule.letter.model.log.SigninLog;
 import cn.wule.letter.model.user.User;
+import cn.wule.letter.user.service.UserInfoService;
+import cn.wule.letter.user.vo.Contact;
+import cn.wule.letter.user.vo.ContactIm;
+import cn.wule.letter.user.vo.SigninVo;
 import cn.wule.letter.user.service.UserService;
 import cn.wule.letter.util.JsonUtil;
 import cn.wule.letter.util.JwtUtil;
@@ -32,6 +39,12 @@ public class UserController
     private RedisUtil redisUtil;
     @Resource
     private LoginLogService loginLogService;
+    @Resource
+    private SigninLogService signinLogService;
+    @Resource
+    private AuthCodeService authCodeService;
+    @Resource
+    private UserInfoService userInfoService;
 
     @PostMapping("/login")
     public String login(@RequestBody User user, HttpServletRequest request){
@@ -70,7 +83,7 @@ public class UserController
                         .msg("登录成功").build();
                 //添加redis记录
                 redisUtil.addJitRedisCacheOnMouth(jwt);
-                //可能存在老的记录，要删除
+                //可能存在老记录，要删除
                 redisUtil.deleteJwtRedisCache(jwt);
                 //记录日志
                 loginLogService.insertLog(loginLog);
@@ -80,23 +93,55 @@ public class UserController
     }
 
     @PostMapping("/signin")
-    public String signin(@RequestBody User user) {
-        String result = jsonUtil.createResponseModelJsonByString("500", "服务器内部错误", null);
-        if (user == null) {
-            result = jsonUtil.createResponseModelJsonByString("400", "User对象为空", null);
-        }else if (user.getUserName() == null || user.getUserPassword() == null) {
-            result = jsonUtil.createResponseModelJsonByString("400", "User对象参数为空", null);
-        }else if(user.getUserName().length() < 2 || user.getUserName().length() > 16
-                || user.getUserPassword().length() < 6 || user.getUserPassword().length() > 128) {
-            result = jsonUtil.createResponseModelJsonByString("400", "用户名或密码的长度不符合要求", null);
+    public String signin(@RequestBody SigninVo signinVo, HttpServletRequest request) {
+        String code = "500";
+        String msg = "服务器内部错误";
+        String data = null;
+        if (signinVo == null) {
+            code = "400";
+            msg = "对象为空";
+        }else if (signinVo.getUserName() == null || signinVo.getPassword() == null
+                || signinVo.getSecondPassword() == null || signinVo.getMethod() == null
+                || signinVo.getCode() == null || signinVo.getContact() == null) {
+            code = "400";
+            msg = "参数为空";
+        }else if(signinVo.getUserName().length() < 2 || signinVo.getUserName().length() > 16
+                || signinVo.getPassword().length() < 6 || signinVo.getPassword().length() > 128
+                || signinVo.getSecondPassword().length() < 6 || signinVo.getSecondPassword().length() > 128) {
+            code = "400";
+            msg = "用户名,密码或确认密码的长度不符合要求";
+        }else if (!signinVo.getPassword().equals(signinVo.getSecondPassword())) {
+            code = "400";
+            msg = "两次输入的密码不一致";
         }else {
-            String userId = userService.addUser(user.getUserName(), user.getUserPassword());
-            if (userId != null) {
-                result = jsonUtil.createResponseModelJsonByString("200", "注册成功", userId);
-                //TODO:注册成功后服务器进行的必要操作,例如日志记录等
-
+            //各种信息全部都有，接下来进行验证码的验证
+            if (authCodeService.checkAuthCode(signinVo.getMethod(), signinVo.getContact(), signinVo.getCode())) {
+                //验证码正确，销毁验证码，防止二次利用，然后进行注册
+                Contact contact = new ContactIm(signinVo.getContact(),signinVo.getMethod());
+                String userId = userService.addUser(signinVo.getUserName(), signinVo.getPassword(),contact);
+                if (userId != null) {
+                    code = "200";
+                    msg = "注册成功";
+                    //注册成功后返回用户id
+                    data = userId;
+                    //记录日志
+                    SigninLog signinLog = SigninLog.builder()
+                            .userId(userId)
+                            .userName(signinVo.getUserName())
+                            .ip(request.getRemoteAddr())
+                            .host(request.getRemoteHost())
+                            .code("200")
+                            .msg("注册成功").build();
+                    signinLogService.insertLog(signinLog);
+                }else {
+                    code = "500";
+                    msg = "注册失败";
+                }
+            }else {
+                code = "400";
+                msg = "验证码错误";
             }
         }
-        return result;
+        return jsonUtil.createResponseModelJsonByString(code, msg, data);
     }
 }

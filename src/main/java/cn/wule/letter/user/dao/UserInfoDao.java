@@ -11,14 +11,28 @@ import org.apache.ibatis.annotations.Update;
  */
 @Mapper
 public interface UserInfoDao {
-    @Select("select * from user_info where user_id = #{userId}")
+    /**
+     * 根据用户id获取用户信息
+     */
+    @Select("select * from user_info where user_id = #{userId} and del_flag = 1")
     UserInfo getUserInfoById(String userId);
 
-    @Insert("insert into user_info(user_id) values(#{userId})")
-    void addUserInfo(String userId);
+    /**
+     * 添加用户信息
+     * @param userId 用户id
+     */
+    @Insert("insert into user_info(user_id,del_flag) values(#{userId},1)")
+    void addUserInfoById(String userId);
 
+    /**
+     * 更新用户信息
+     */
     @Update("update user_info set user_sex = #{userSex},user_birthday = #{userBirthday}," +
             "user_address = #{userAddress},user_phone = #{userPhone}," +
             "user_email = #{userEmail} where user_id = #{userId}")
-    boolean updateUserInfo(String userId,String userSex,String userBirthday,String userAddress,String userPhone,String userEmail);
+    void updateUserInfo(String userId,String userSex,String userBirthday,String userAddress,String userPhone,String userEmail);
+
+    /**删除用户信息*/
+    @Update("update user_info set del_flag = 0 where user_id = #{userId}")
+    void deleteUserInfoById(String userId);
 }

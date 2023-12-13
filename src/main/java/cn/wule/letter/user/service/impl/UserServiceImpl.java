@@ -1,11 +1,14 @@
 package cn.wule.letter.user.service.impl;
 //汉江师范学院 数计学院 吴乐创建于2023/12/9 23:09
 
+import cn.wule.letter.log.service.SigninLogService;
 import cn.wule.letter.log.service.UserSigninLogService;
+import cn.wule.letter.model.log.SigninLog;
 import cn.wule.letter.model.user.User;
 import cn.wule.letter.user.dao.UserDao;
 import cn.wule.letter.user.dao.UserInfoDao;
 import cn.wule.letter.user.service.UserService;
+import cn.wule.letter.user.vo.Contact;
 import cn.wule.letter.util.BCryptPwdUtil;
 import cn.wule.letter.util.UserUtil;
 import jakarta.annotation.Resource;
@@ -25,8 +28,6 @@ public class UserServiceImpl implements UserService {
     private UserDao userDao;
     @Resource
     private UserInfoDao userInfoDao;
-    @Resource(name = "userSigninLogServiceImpl")
-    private UserSigninLogService userSigninLogService;
 
     public User getUserById(String userId) {
         return userDao.getUserById(userId);
@@ -39,7 +40,7 @@ public class UserServiceImpl implements UserService {
      * @return 是否添加成功,最多获取10次用户id。
      */
     @Override
-    public String addUser(String userName, String userPassword) {
+    public String addUser(String userName, String userPassword, Contact contact) {
         //创建新的用户Id
         int i = 1;
         long newId;
@@ -56,9 +57,8 @@ public class UserServiceImpl implements UserService {
         //添加到用户表
         userDao.addNormalUser(userId,userName,password);
         //添加用户信息表
-        userInfoDao.addUserInfo(userId);
-        //注册的日志记录
-        userSigninLogService.addUserSigninLog(userId);
+        userInfoDao.addUserInfoById(userId);
+        userInfoDao.updateUserInfo(userId,null,null,null,contact.PHONE,contact.EMAIL);
         //TODO 用户的好友表
         //TODO 用户的群组表
         //TODO 用户的订阅频道表

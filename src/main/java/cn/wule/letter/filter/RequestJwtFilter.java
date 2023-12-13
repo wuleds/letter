@@ -129,10 +129,11 @@ public class RequestJwtFilter extends OncePerRequestFilter
     }
 
     public boolean noVerify(String uri){
-        return switch (uri) {
+        /*return switch (uri) {
             case "/forget", "/user/signin", "/user/login" -> true;
             default -> false;
-        };
+        };*/
+        return true;
     }
 
 

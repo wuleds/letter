@@ -47,7 +47,7 @@ public class WebSecurityConfig{
                         .requestMatchers("/signin").permitAll()
                         .requestMatchers("/user/login").permitAll()
                 .anyRequest()
-                .authenticated());
+                .permitAll());
         http.formLogin(AbstractHttpConfigurer::disable);
                         //.loginPage("/ll").permitAll() //配置登录接口
 //                        .usernameParameter("userId") //配置登录用户名参数
