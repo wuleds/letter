@@ -8,7 +8,6 @@ import cn.wule.letter.model.JwtUserInfo;
 import cn.wule.letter.model.log.LoginLog;
 import cn.wule.letter.model.log.SigninLog;
 import cn.wule.letter.model.user.User;
-import cn.wule.letter.user.service.UserInfoService;
 import cn.wule.letter.user.vo.Contact;
 import cn.wule.letter.user.vo.ContactIm;
 import cn.wule.letter.user.vo.SigninVo;
@@ -43,8 +42,6 @@ public class UserController
     private SigninLogService signinLogService;
     @Resource
     private AuthCodeService authCodeService;
-    @Resource
-    private UserInfoService userInfoService;
 
     @PostMapping("/login")
     public String login(@RequestBody User user, HttpServletRequest request){
@@ -94,8 +91,8 @@ public class UserController
 
     @PostMapping("/signin")
     public String signin(@RequestBody SigninVo signinVo, HttpServletRequest request) {
-        String code = "500";
-        String msg = "服务器内部错误";
+        String code;
+        String msg;
         String data = null;
         if (signinVo == null) {
             code = "400";
