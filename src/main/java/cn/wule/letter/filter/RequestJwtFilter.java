@@ -77,8 +77,9 @@ public class RequestJwtFilter extends OncePerRequestFilter
             return;
         }
         //获取JWT
-        String jwt = strAuth.replace("bearer ", "");
+        String jwt = strAuth.replace("Bearer ", "");
         //判断jwt是否合法,合法则检查是否被吊销，不合法则直接拒绝
+        log.info("jwt:{}",jwt);
         JwtUserInfo userInfo = jwtUtil.verifyJWT(jwt);
         if(userInfo == null){
             jsonUtil.writeStringJsonToResponse(response,"401","授权信息不合法，请重新登录","");
@@ -105,35 +106,29 @@ public class RequestJwtFilter extends OncePerRequestFilter
                 //记录日志
                 requestLog.setCode("200");
                 requestLog.setMsg("请求成功");
-                requestLog.setUserId(userInfo.getUserId());
-                requestLog.setUserName(userInfo.getUserName());
-                requestLogServiceImpl.insertLog(requestLog);
             }else {
                 //jwt不一致，直接拒绝
                 jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
                 requestLog.setCode("401");
                 requestLog.setMsg("授权信息已失效，请重新登录");
-                requestLog.setUserId(userInfo.getUserId());
-                requestLog.setUserName(userInfo.getUserName());
-                requestLogServiceImpl.insertLog(requestLog);
             }
         }else {
             //redis中不存在jwt缓存，直接拒绝
             jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
             requestLog.setCode("401");
             requestLog.setMsg("授权信息已失效，请重新登录");
-            requestLog.setUserId(userInfo.getUserId());
-            requestLog.setUserName(userInfo.getUserName());
-            requestLogServiceImpl.insertLog(requestLog);
         }
+        requestLog.setUserId(userInfo.getUserId());
+        requestLog.setUserName(userInfo.getUserName());
+        requestLogServiceImpl.insertLog(requestLog);
     }
 
     public boolean noVerify(String uri){
-        /*return switch (uri) {
+        return switch (uri) {
             case "/forget", "/user/signin", "/user/login" -> true;
             default -> false;
-        };*/
-        return true;
+        };
+        //return true;
     }
 
 

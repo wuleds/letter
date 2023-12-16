@@ -38,8 +38,8 @@ public class UserSecurityDetailServiceImpl implements UserDetailsService {
         if(user == null || Objects.equals(user.getDelFlag(),"0")){
             throw new UsernameNotFoundException("用户不存在");
         }
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        //permissionService.getUserPermissionByUserId(userId).stream().map(SimpleGrantedAuthority::new).toList();
+        log.info("用户信息:{}",user);
+        List<SimpleGrantedAuthority> authorities = permissionService.getUserPermissionByUserId(userId).stream().map(SimpleGrantedAuthority::new).toList();
         return new UserSecurity(user,authorities);
     }
 }

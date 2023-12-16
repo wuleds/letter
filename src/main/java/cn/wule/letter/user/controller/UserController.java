@@ -10,10 +10,7 @@ import cn.wule.letter.model.log.SigninLog;
 import cn.wule.letter.model.user.User;
 import cn.wule.letter.model.user.UserInfo;
 import cn.wule.letter.user.service.UserInfoService;
-import cn.wule.letter.user.vo.Contact;
-import cn.wule.letter.user.vo.ContactIm;
-import cn.wule.letter.user.vo.ForgetVo;
-import cn.wule.letter.user.vo.SigninVo;
+import cn.wule.letter.user.vo.*;
 import cn.wule.letter.user.service.UserService;
 import cn.wule.letter.util.JsonUtil;
 import cn.wule.letter.util.JwtUtil;
@@ -22,10 +19,9 @@ import cn.wule.letter.util.RedisUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/user")
@@ -86,10 +82,10 @@ public class UserController
                         .host(request.getRemoteHost())
                         .code("200")
                         .msg("登录成功").build();
+                //可能存在老记录，要删除
+                redisUtil.deleteJwtRedisCacheByUserId(userId);
                 //添加redis记录
                 redisUtil.addJitRedisCacheOnMouth(jwt);
-                //可能存在老记录，要删除
-                redisUtil.deleteJwtRedisCache(jwt);
                 //记录日志
                 loginLogService.insertLog(loginLog);
             }
@@ -150,6 +146,17 @@ public class UserController
         return jsonUtil.createResponseModelJsonByString(code, msg, data);
     }
 
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request){
+        String jwt = request.getHeader("Authorization");
+        if(jwt == null || jwt.isEmpty()){
+            return jsonUtil.createResponseModelJsonByString("400","jwt为空",null);
+        }
+        //删除redis中的jwt
+        redisUtil.deleteJwtRedisCache(jwt);
+        return jsonUtil.createResponseModelJsonByString("200","退出登录成功",null);
+    }
+
     @PostMapping("/forget")
     public String forget(@RequestBody ForgetVo forgetVo,HttpServletRequest request){
         if(forgetVo == null){
@@ -159,7 +166,6 @@ public class UserController
         String userId = forgetVo.getUserId();
         String contact = forgetVo.getContact();
         String authCode = forgetVo.getAuthCode();
-        String jwt = request.getHeader("Authorization");
         if(method == null || userId == null || contact == null || authCode == null || authCode.isEmpty() || method.isEmpty() || userId.isEmpty() || contact.isEmpty()){
             return jsonUtil.createResponseModelJsonByString("400","参数为空",null);
         }
@@ -168,21 +174,21 @@ public class UserController
         if (userInfo == null){
             return jsonUtil.createResponseModelJsonByString("400","账号不存在",null);
         }
+        log.info(String.valueOf(userInfo));
         String userPhone = userInfo.getUserPhone();
         String userEmail = userInfo.getUserEmail();
-        if(userEmail == null || userPhone == null){
-            return jsonUtil.createResponseModelJsonByString("400","该账号未绑定邮箱或手机号",null);
+        if(userEmail == null && userPhone == null){
+            return jsonUtil.createResponseModelJsonByString("400","该账号未绑定联系方式",null);
         }
-        String currentContact = null;
         //确定用户的联系方式与预先设置的一样。
         switch (method){
             case "phone":
-                if(userPhone.equals(contact)){
+                if(!Objects.equals(userPhone, contact)){
                     return jsonUtil.createResponseModelJsonByString("400","手机号错误",null);
                 }
                 break;
             case "email":
-                if(!userEmail.equals(contact)){
+                if(!Objects.equals(userEmail, contact)){
                     return jsonUtil.createResponseModelJsonByString("400","邮箱错误",null);
                 }
                 break;
@@ -199,14 +205,41 @@ public class UserController
         //生成长链接,并存入redis
         String longUrl = randomString.getLongLink();
         redisUtil.addLongUrlCache(userId,longUrl);
+        //向联系方式发送长链接
+        longUrl = "http://" + request.getServerName() + "/user/reset/" + longUrl;
+        authCodeService.sendLongUrl(method,contact,longUrl);
+        return jsonUtil.createResponseModelJsonByString("200","发送重置密码链接成功",null);
+    }
 
-
-        return "";
-
-
-
-
-
+    @PostMapping("/reset")
+    public String resetPassword(@RequestBody ResetVo resetVo){
+        String longUrl = resetVo.getLongUrl();
+        String password = resetVo.getPassword();
+        String secondPassword = resetVo.getSecondPassword();
+        //根据长链接获取用户id
+        String userId = redisUtil.getLongUrlCache(longUrl);
+        if(userId == null){
+            return jsonUtil.createResponseModelJsonByString("400","链接已失效",null);
+        }
+        if(password == null || secondPassword == null || password.isEmpty() || secondPassword.isEmpty()){
+            return jsonUtil.createResponseModelJsonByString("400","参数为空",null);
+        }
+        if(password.length() < 6 || password.length() > 128 || secondPassword.length() < 6 || secondPassword.length() > 128){
+            return jsonUtil.createResponseModelJsonByString("400","密码长度不符合要求",null);
+        }
+        if(!Objects.equals(password,secondPassword)){
+            return jsonUtil.createResponseModelJsonByString("400","两次输入的密码不一致",null);
+        }
+        //修改密码
+        if(userService.updatePassword(userId,password)) {
+            //移除jwt
+            redisUtil.deleteJwtRedisCacheByUserId(userId);
+            //移除长链接
+            redisUtil.deleteLongUrlCache(longUrl);
+            return jsonUtil.createResponseModelJsonByString("200", "修改密码成功", null);
+        }else {
+            return jsonUtil.createResponseModelJsonByString("500","修改密码失败",null);
+        }
 
     }
 }

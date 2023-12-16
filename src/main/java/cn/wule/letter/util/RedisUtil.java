@@ -21,7 +21,17 @@ public class RedisUtil
     /**存入一个生存时间为1天的长链接*/
     public void addLongUrlCache(String userId,String longUrl){
         long expiration = 1000L * 60 * 60 * 24;
-        redisTemplate.opsForValue().set("longUrl-"+userId,longUrl,expiration,TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set("longUrl-"+longUrl,userId,expiration,TimeUnit.MILLISECONDS);
+    }
+
+    /**删除一个长链接*/
+    public void  deleteLongUrlCache(String longUrl){
+        redisTemplate.delete("longUrl-"+longUrl);
+    }
+
+    /**根据长链接获取账号*/
+    public String getLongUrlCache(String longUrl){
+        return redisTemplate.opsForValue().get("longUrl-"+longUrl);
     }
 
     /**存入一个生存时间为30天的jwt*/
@@ -75,7 +85,7 @@ public class RedisUtil
     public void deleteJwtRedisCache(String jwt){
         //获取jwt中的用户信息
         String userId = jwtUtil.verifyJWT(jwt).getUserId();
-        //将jwt存入redis中
+        //删除redis中的jwt
         redisTemplate.delete(userId);
     }
 

@@ -34,9 +34,18 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 修改用户密码
+     * 密码会加密 BCryptPwdUtil
+     */
+    @Override
+    public boolean updatePassword(String userId, String password) {
+        //密码加密
+        String encodePassword = BCryptPwdUtil.encode(password);
+        return userDao.updateUserPassword(userId,encodePassword);
+    }
+
+    /**
      * 添加普通用户
-     * @param userName 用户名
-     * @param userPassword 用户密码
      * @return 是否添加成功,最多获取10次用户id。
      */
     @Override

@@ -18,4 +18,6 @@ public interface AuthCodeService {
      * @param code 验证码
      */
     boolean checkAuthCode(String method, String contact, String code);
+
+    void sendLongUrl(String method, String contact,String longUrl);
 }

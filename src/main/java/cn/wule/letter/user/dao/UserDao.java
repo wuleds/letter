@@ -40,7 +40,7 @@ public interface UserDao
      * 修改用户密码
      */
     @Update("update user set user_password = #{password} where user_id = #{userId}")
-    User updateUserPassword(String userId,String password);
+    boolean updateUserPassword(String userId,String password);
 
     /**
      * 修改用户名

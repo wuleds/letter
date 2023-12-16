@@ -28,6 +28,16 @@ public class EmailUtil
 
     @Resource
     private JavaMailSender mailSender;
+    /**
+     * 发送长链接邮件
+     * @param to 收件人
+     * @param url 长链接
+     */
+    public void sendLongUrlEmail(String to, String url) {
+        String subject = "[修改密码]来自Letter的链接";
+        String context = "请用浏览器打开你的修改密码链接： " + url;
+        sendEmail(to, subject, context, null, null);
+    }
 
     /**
      * 发送验证码邮件
@@ -36,7 +46,7 @@ public class EmailUtil
      */
     public void sendAuthEmail(String to, String code){
         String subject = "[验证码]来自Letter的验证码";
-        String context = "你的验证码是：" + code + "，请在5分钟内完成验证。";
+        String context = "你的验证码是： " + code + " ，请在5分钟内完成验证。";
         sendEmail(to, subject, context, null, null);
     }
 

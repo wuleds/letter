@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.wule.letter.user.dao.UserPermissionDao">
     <select id="getUserPermissionByUserId" resultType="java.lang.String">
-        select permission.permission_id
+        select permission.permission_name
         from user_group_permission as ugp,user,user_group as ug,permission
         where user_id = #{userId} and user.user_group_id = ug.user_group_id
           and ug.user_group_id = ugp.group_id and permission.permission_id = ugp.permission_id

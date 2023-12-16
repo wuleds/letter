@@ -10,4 +10,9 @@ public class SendAuthCodeByPhone implements SendAuthCodeService {
     public void sendAuthCode(String contact, String code) {
 
     }
+
+    @Override
+    public void sendLongUrl(String contact, String url) {
+
+    }
 }

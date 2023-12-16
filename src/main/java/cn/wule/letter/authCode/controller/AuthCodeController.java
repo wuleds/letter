@@ -34,5 +34,4 @@ public class AuthCodeController
         authCodeService.sendAuthCode(method, contact);
         return jsonUtil.createResponseModelJsonByString("200", "验证码已发送", null);
     }
-
 }

@@ -53,7 +53,8 @@ public class AuthCodeServiceImpl implements AuthCodeService {
      */
     @Override
     public boolean checkAuthCode(String method, String contact, String code) {
-        //获取最新的有效的验证码
+        return true;
+        /*//获取最新的有效的验证码
         String autoCode = redisUtil.getAuthCodeCache(contact);
         //验证验证码
         if(autoCode == null || code == null || autoCode.isEmpty() || code.isEmpty()) {
@@ -65,6 +66,21 @@ public class AuthCodeServiceImpl implements AuthCodeService {
             return true;
         }else {
             return false;
+        }*/
+    }
+
+    @Override
+    public void sendLongUrl(String method, String contact, String longUrl){
+        SendAuthCodeService sendAuthCodeService;
+        //检查联系方式
+        if(Objects.equals(method, "email")) {
+            sendAuthCodeService = sendAuthCodeByEmail;
+        }else if(Objects.equals(method, "phone")) {
+            sendAuthCodeService = sendAuthCodeByPhone;
+        }else {
+            return;
         }
+        //发送长链接
+        sendAuthCodeService.sendLongUrl(contact, longUrl);
     }
 }

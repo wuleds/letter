@@ -19,4 +19,11 @@ public class SendAuthCodeByEmail implements SendAuthCodeService {
         //发送验证码
         emailUtil.sendAuthEmail(contact, code);
     }
+
+    @Override
+    public void sendLongUrl(String contact, String url) {
+        log.info("发送长链接到邮箱：{}", contact);
+        //发送验证码
+        emailUtil.sendLongUrlEmail(contact, url);
+    }
 }
