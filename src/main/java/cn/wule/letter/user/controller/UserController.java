@@ -8,12 +8,16 @@ import cn.wule.letter.model.JwtUserInfo;
 import cn.wule.letter.model.log.LoginLog;
 import cn.wule.letter.model.log.SigninLog;
 import cn.wule.letter.model.user.User;
+import cn.wule.letter.model.user.UserInfo;
+import cn.wule.letter.user.service.UserInfoService;
 import cn.wule.letter.user.vo.Contact;
 import cn.wule.letter.user.vo.ContactIm;
+import cn.wule.letter.user.vo.ForgetVo;
 import cn.wule.letter.user.vo.SigninVo;
 import cn.wule.letter.user.service.UserService;
 import cn.wule.letter.util.JsonUtil;
 import cn.wule.letter.util.JwtUtil;
+import cn.wule.letter.util.RandomString;
 import cn.wule.letter.util.RedisUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,6 +46,10 @@ public class UserController
     private SigninLogService signinLogService;
     @Resource
     private AuthCodeService authCodeService;
+    @Resource
+    private UserInfoService userInfoService;
+    @Resource
+    private RandomString randomString;
 
     @PostMapping("/login")
     public String login(@RequestBody User user, HttpServletRequest request){
@@ -140,5 +148,65 @@ public class UserController
             }
         }
         return jsonUtil.createResponseModelJsonByString(code, msg, data);
+    }
+
+    @PostMapping("/forget")
+    public String forget(@RequestBody ForgetVo forgetVo,HttpServletRequest request){
+        if(forgetVo == null){
+            return jsonUtil.createResponseModelJsonByString("400","对象为空",null);
+        }
+        String method = forgetVo.getMethod();
+        String userId = forgetVo.getUserId();
+        String contact = forgetVo.getContact();
+        String authCode = forgetVo.getAuthCode();
+        String jwt = request.getHeader("Authorization");
+        if(method == null || userId == null || contact == null || authCode == null || authCode.isEmpty() || method.isEmpty() || userId.isEmpty() || contact.isEmpty()){
+            return jsonUtil.createResponseModelJsonByString("400","参数为空",null);
+        }
+        //根据账号获取user_info表中的用户信息
+        UserInfo userInfo = userInfoService.getUserInfo(userId);
+        if (userInfo == null){
+            return jsonUtil.createResponseModelJsonByString("400","账号不存在",null);
+        }
+        String userPhone = userInfo.getUserPhone();
+        String userEmail = userInfo.getUserEmail();
+        if(userEmail == null || userPhone == null){
+            return jsonUtil.createResponseModelJsonByString("400","该账号未绑定邮箱或手机号",null);
+        }
+        String currentContact = null;
+        //确定用户的联系方式与预先设置的一样。
+        switch (method){
+            case "phone":
+                if(userPhone.equals(contact)){
+                    return jsonUtil.createResponseModelJsonByString("400","手机号错误",null);
+                }
+                break;
+            case "email":
+                if(!userEmail.equals(contact)){
+                    return jsonUtil.createResponseModelJsonByString("400","邮箱错误",null);
+                }
+                break;
+            default:
+                return jsonUtil.createResponseModelJsonByString("400","参数错误",null);
+        }
+        //验证验证码
+        if(!authCodeService.checkAuthCode(method,contact,authCode)){
+            return jsonUtil.createResponseModelJsonByString("400","验证码错误",null);
+        }
+
+        //移除jwt
+        redisUtil.deleteJwtRedisCacheByUserId(userId);
+        //生成长链接,并存入redis
+        String longUrl = randomString.getLongLink();
+        redisUtil.addLongUrlCache(userId,longUrl);
+
+
+        return "";
+
+
+
+
+
+
     }
 }
