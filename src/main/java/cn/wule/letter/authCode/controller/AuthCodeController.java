@@ -2,15 +2,15 @@ package cn.wule.letter.authCode.controller;
 //汉江师范学院 数计学院 吴乐创建于2023/12/12 23:39
 
 import cn.wule.letter.authCode.service.AuthCodeService;
+import cn.wule.letter.authCode.vo.AuthVo;
 import cn.wule.letter.util.JsonUtil;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+@Slf4j
 public class AuthCodeController
 {
     @Resource
@@ -19,8 +19,11 @@ public class AuthCodeController
     private JsonUtil jsonUtil;
 
     @PostMapping("/get")
-    public String getAuthCode(String method, String contact)
+    public String getAuthCode(@RequestBody AuthVo authVo)
     {
+        String method = authVo.getMethod();
+        String contact = authVo.getContact();
+        log.info("method: " + method + " contact: " + contact);
         if(method == null || contact == null || method.isEmpty() || contact.isEmpty())
             return jsonUtil.createResponseModelJsonByString("400", "参数为空", null);
         if(!method.equals("email") && !method.equals("phone"))
@@ -32,6 +35,8 @@ public class AuthCodeController
         if(method.equals("phone") && !contact.matches("^1[0-9]{10}$"))
             return jsonUtil.createResponseModelJsonByString("400", "手机号格式错误", null);
         authCodeService.sendAuthCode(method, contact);
-        return jsonUtil.createResponseModelJsonByString("200", "验证码已发送", null);
+        String result = jsonUtil.createResponseModelJsonByString("200", "验证码已发送", null);
+        log.info(result);
+        return result;
     }
 }

@@ -30,6 +30,7 @@ public class WebSecurityConfig{
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         //在用户名密码认证过滤器前添加过滤器
+        http.csrf(AbstractHttpConfigurer::disable);
         http.addFilterBefore(requestJwtFilter, UsernamePasswordAuthenticationFilter.class);
         http.authorizeHttpRequests(
                 (authorize) -> authorize
@@ -38,7 +39,7 @@ public class WebSecurityConfig{
                         .requestMatchers("/user/login").permitAll()
                         .requestMatchers("/test/principal").hasAuthority("main:add")
                 .anyRequest()
-                .authenticated());
+                .permitAll());
         http.formLogin(AbstractHttpConfigurer::disable);
         http.logout((AbstractHttpConfigurer::disable));
         http.exceptionHandling((exceptionHandling) -> exceptionHandling.accessDeniedHandler(appAccessDenyHandler));
@@ -46,7 +47,7 @@ public class WebSecurityConfig{
         //不创建session
         http.sessionManagement((sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         //禁止同源保护
-        http.csrf(AbstractHttpConfigurer::disable);
+
 
         return http.build();
     }
