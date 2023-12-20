@@ -12,10 +12,9 @@ import cn.wule.letter.model.user.UserInfo;
 import cn.wule.letter.user.service.UserInfoService;
 import cn.wule.letter.user.vo.*;
 import cn.wule.letter.user.service.UserService;
-import cn.wule.letter.util.JsonUtil;
-import cn.wule.letter.util.JwtUtil;
-import cn.wule.letter.util.RandomString;
-import cn.wule.letter.util.RedisUtil;
+import cn.wule.letter.util.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -46,10 +45,11 @@ public class UserController
     private UserInfoService userInfoService;
     @Resource
     private RandomString randomString;
+    @Resource
+    private ObjectMapper om;
 
     @PostMapping("/login")
     public String login(@RequestBody User user, HttpServletRequest request){
-        log.info("用户登录");
         String code = "500";
         String msg = "服务器内部错误";
         String data = null;
@@ -88,6 +88,10 @@ public class UserController
                 redisUtil.addJitRedisCacheOnMouth(jwt);
                 //记录日志
                 loginLogService.insertLog(loginLog);
+                log.info("用户登录，用户名：{}，账号：{}，时间：{}",userCheck.getUserName(),userCheck.getUserId(), NowDate.getNowDate());
+            }else {
+                code = "400";
+                msg = "账号或密码错误";
             }
         }
         return jsonUtil.createResponseModelJsonByString(code, msg, data);
@@ -165,8 +169,7 @@ public class UserController
         String method = forgetVo.getMethod();
         String userId = forgetVo.getUserId();
         String contact = forgetVo.getContact();
-        String authCode = forgetVo.getAuthCode();
-        if(method == null || userId == null || contact == null || authCode == null || authCode.isEmpty() || method.isEmpty() || userId.isEmpty() || contact.isEmpty()){
+        if(method == null || userId == null || contact == null  || method.isEmpty() || userId.isEmpty() || contact.isEmpty()){
             return jsonUtil.createResponseModelJsonByString("400","参数为空",null);
         }
         //根据账号获取user_info表中的用户信息
@@ -174,7 +177,6 @@ public class UserController
         if (userInfo == null){
             return jsonUtil.createResponseModelJsonByString("400","账号不存在",null);
         }
-        log.info(String.valueOf(userInfo));
         String userPhone = userInfo.getUserPhone();
         String userEmail = userInfo.getUserEmail();
         if(userEmail == null && userPhone == null){
@@ -194,10 +196,6 @@ public class UserController
                 break;
             default:
                 return jsonUtil.createResponseModelJsonByString("400","参数错误",null);
-        }
-        //验证验证码
-        if(!authCodeService.checkAuthCode(method,contact,authCode)){
-            return jsonUtil.createResponseModelJsonByString("400","验证码错误",null);
         }
 
         //移除jwt
@@ -228,7 +226,7 @@ public class UserController
             return jsonUtil.createResponseModelJsonByString("400","密码长度不符合要求",null);
         }
         if(!Objects.equals(password,secondPassword)){
-            return jsonUtil.createResponseModelJsonByString("400","两次输入的密码不一致",null);
+            return jsonUtil.createResponseModelJsonByString("400","密码和确认密码不一致",null);
         }
         //修改密码
         if(userService.updatePassword(userId,password)) {
@@ -241,5 +239,34 @@ public class UserController
             return jsonUtil.createResponseModelJsonByString("500","修改密码失败",null);
         }
 
+    }
+
+    @PostMapping("/autoLogin")
+    public String autoLogin(String jwt){
+        String code;
+        String msg;
+        String data = null;
+        if(jwt == null || jwt.isEmpty()){
+            code = "400";
+            msg = "jwt错误";
+        }else {
+            JwtUserInfo jwtUserInfo = jwtUtil.verifyJWT(jwt);
+            if (jwtUserInfo == null || jwtUserInfo.getUserId() == null) {
+                code = "400";
+                msg = "jwt已经失效";
+            }else {
+                code = "200";
+                msg = "jwt有效";
+                jwtUserInfo.setUserInfo(null);
+                try {
+                    data = om.writeValueAsString(jwtUserInfo);
+                } catch (JsonProcessingException e) {
+                    log.info("json转换失败，{}",e.getMessage());
+                    code = "500";
+                    msg = "服务器端错误";
+                }
+            }
+        }
+        return jsonUtil.createResponseModelJsonByString(code,msg,data);
     }
 }

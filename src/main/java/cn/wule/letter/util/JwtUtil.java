@@ -27,15 +27,16 @@ public class JwtUtil
     @Value("${jwt.issuer}")
     String issuer;
 
+    /**创建一个有效期为一个月的jwt*/
     public String createJwtOnMouth(JwtUserInfo jwtUserInfo){
         long expireTime = 1000L * 60 * 60 * 24 * 30;
         return createJwt(jwtUserInfo,new Date(),new Date(System.currentTimeMillis() + expireTime));
     }
-    //生成JWT
+    /**生成JWT*/
     public String createJwt(JwtUserInfo jwtUserInfo, Date issueDate, Date expireDate){
         Map<String,Object> headerClaims = new HashMap<>();
         //加密算法
-        headerClaims.put("alg","HS256");
+        headerClaims.put("alg","HMAC256");
         headerClaims.put("typ","JWT");
         JWTCreator.Builder builder = JWT.create();
         builder.withHeader(headerClaims)
@@ -58,11 +59,10 @@ public class JwtUtil
                 }
             }
         }*/
-        String jwt = builder.sign(Algorithm.HMAC256(secretKey));
-        log.info("jwt:用户ID：{}，用户名:{}，{}",jwtUserInfo.getUserName(),jwtUserInfo.getUserId(),jwt);
-        return jwt;
+        return builder.sign(Algorithm.HMAC256(secretKey));
     }
-    //验证JWT,并获取用户信息
+
+    /**验证JWT,并获取用户信息*/
     public JwtUserInfo verifyJWT(String jwt){
         JwtUserInfo jwtUserInfo = new JwtUserInfo();
         DecodedJWT decodedJWT;

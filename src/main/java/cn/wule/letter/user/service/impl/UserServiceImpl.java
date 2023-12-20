@@ -10,6 +10,7 @@ import cn.wule.letter.user.dao.UserInfoDao;
 import cn.wule.letter.user.service.UserService;
 import cn.wule.letter.user.vo.Contact;
 import cn.wule.letter.util.BCryptPwdUtil;
+import cn.wule.letter.util.NowDate;
 import cn.wule.letter.util.UserUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
         String password = BCryptPwdUtil.encode(userPassword);
         String userId = String.valueOf(newId);
         //添加到用户表
-        userDao.addNormalUser(userId,userName,password);
+        userDao.addNormalUser(userId,userName,password, NowDate.getNowDate());
         //添加用户信息表
         userInfoDao.addUserInfoById(userId);
         userInfoDao.updateUserInfo(userId,null,null,null,contact.PHONE,contact.EMAIL);
@@ -80,7 +81,6 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User checkUser(String userId,String password) {
-        log.info("用户登录，用户id：{}",userId);
         String encodePassword = userDao.checkUser(userId);
         //将密码与加密后的密码进行比较
         if(BCryptPwdUtil.matches(password,encodePassword)){

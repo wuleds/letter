@@ -17,4 +17,5 @@ public class User
     String userPassword;
     String userGroupId;
     String delFlag;
+    String signinDate;
 }

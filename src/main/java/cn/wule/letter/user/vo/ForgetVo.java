@@ -9,5 +9,4 @@ public class ForgetVo
     private String userId;
     private String method;
     private String contact;
-    private String authCode;
 }

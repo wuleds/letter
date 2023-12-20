@@ -16,15 +16,15 @@ public interface UserDao
      * @param userName 用户名
      * @param userPassword 用户密码
      */
-    @Insert("insert into user(user_id,user_name,user_password,user_group_id) values(#{userId},#{userName},#{userPassword},'3')")
-    void addNormalUser(String userId ,String userName,String userPassword);
+    @Insert("insert into user(user_id,user_name,user_password,user_group_id,signin_date,del_flag) values(#{userId},#{userName},#{userPassword},'3',#{signinDate},'1')")
+    void addNormalUser(String userId ,String userName,String userPassword,String signinDate);
 
     /**
      * 根据用户id获取用户信息
      * @param userId 用户id
      * @return User
      */
-    @Select("select * from user where user_id = #{userId}")
+    @Select("select user_name,user_id from user where user_id = #{userId}")
     User getUserById(String userId);
 
     /**
