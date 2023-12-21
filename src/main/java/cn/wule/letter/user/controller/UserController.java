@@ -230,8 +230,6 @@ public class UserController
         }
         //修改密码
         if(userService.updatePassword(userId,password)) {
-            //移除jwt
-            redisUtil.deleteJwtRedisCacheByUserId(userId);
             //移除长链接
             redisUtil.deleteLongUrlCache(longUrl);
             return jsonUtil.createResponseModelJsonByString("200", "修改密码成功", null);

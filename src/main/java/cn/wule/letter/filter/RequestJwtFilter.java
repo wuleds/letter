@@ -79,7 +79,6 @@ public class RequestJwtFilter extends OncePerRequestFilter
         //获取JWT
         String jwt = strAuth.replace("Bearer ", "");
         //判断jwt是否合法,合法则检查是否被吊销，不合法则直接拒绝
-        log.info("jwt:{}",jwt);
         JwtUserInfo userInfo = jwtUtil.verifyJWT(jwt);
         if(userInfo == null){
             jsonUtil.writeStringJsonToResponse(response,"401","授权信息不合法，请重新登录","");
@@ -108,7 +107,7 @@ public class RequestJwtFilter extends OncePerRequestFilter
                 requestLog.setMsg("请求成功");
             }else {
                 //jwt不一致，直接拒绝
-                jsonUtil.writeStringJsonToResponse(response,"401","授权信息已失效，请重新登录","");
+                jsonUtil.writeStringJsonToResponse(response,"401","授权信息不一致，请重新登录","");
                 requestLog.setCode("401");
                 requestLog.setMsg("授权信息已失效，请重新登录");
             }
@@ -125,12 +124,13 @@ public class RequestJwtFilter extends OncePerRequestFilter
 
     public boolean noVerify(String uri){
         return switch (uri) {
-            case    "/user/autoLogin",
+            case "/user/autoLogin",
                     "/user/signin",
                     "/user/login",
                     "/auth/get",
                     "/user/forget",
-                    "/user/reset"-> true;
+                    "/user/reset"
+                    -> true;
             default -> false;
         };
         //return true;

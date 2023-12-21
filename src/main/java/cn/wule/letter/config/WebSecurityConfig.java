@@ -37,7 +37,6 @@ public class WebSecurityConfig{
                 /*.requestMatchers("/root/**").hasAuthority("root:all")*/
                         .requestMatchers("/signin").permitAll()
                         .requestMatchers("/user/login").permitAll()
-                        .requestMatchers("/test/principal").hasAuthority("main:add")
                 .anyRequest()
                 .permitAll());
         http.formLogin(AbstractHttpConfigurer::disable);

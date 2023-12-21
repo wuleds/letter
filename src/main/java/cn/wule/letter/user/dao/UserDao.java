@@ -24,13 +24,13 @@ public interface UserDao
      * @param userId 用户id
      * @return User
      */
-    @Select("select user_name,user_id from user where user_id = #{userId}")
+    @Select("select user_name,user_id from user where user_id = #{userId} and del_flag = '1'")
     User getUserById(String userId);
 
     /**
      * 查询该用户是否存在，根据用户id
      */
-    @Select("select count(*) from user where user_id = #{userId}")
+    @Select("select count(*) from user where user_id = #{userId} and del_flag = '1'")
     int queryUserByUserId(String userId);
 
     @Select("select user_password from user where user_id = #{userId}")
@@ -39,12 +39,12 @@ public interface UserDao
     /**
      * 修改用户密码
      */
-    @Update("update user set user_password = #{password} where user_id = #{userId}")
+    @Update("update user set user_password = #{password} where user_id = #{userId} and del_flag = '1'")
     boolean updateUserPassword(String userId,String password);
 
     /**
      * 修改用户名
      */
-    @Update("update user set user_name = #{userName} where user_id = #{userId}")
+    @Update("update user set user_name = #{userName} where user_id = #{userId} and del_flag = '1' ")
     User updateUserName(String userId,String userName);
 }

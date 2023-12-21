@@ -20,8 +20,8 @@ public class RedisUtil
 
     /**存入一个生存时间为1天的长链接*/
     public void addLongUrlCache(String userId,String longUrl){
-        long expiration = 1000L * 60 * 60 * 24;
-        redisTemplate.opsForValue().set("longUrl-"+longUrl,userId,expiration,TimeUnit.MILLISECONDS);
+        long expiration = 60 * 60 * 24;
+        redisTemplate.opsForValue().set("longUrl-"+longUrl,userId,expiration,TimeUnit.SECONDS);
     }
 
     /**删除一个长链接*/
@@ -36,19 +36,19 @@ public class RedisUtil
 
     /**存入一个生存时间为30天的jwt*/
     public void addJitRedisCacheOnMouth(String jwt){
-        long expiration = 1000L * 60 * 60 * 24 * 30;
+        long expiration = 60 * 60 * 24 * 30;
         addJwtRedisCache(jwt,expiration);
     }
 
     /**
-     * 添加jwt缓存,key 为 userId
+     * 添加jwt缓存,key 为 jwt-userId
      * @param jwt JWT
      */
     public void addJwtRedisCache(String jwt, long expiration){
         //获取jwt中的用户信息
         String userId = jwtUtil.verifyJWT(jwt).getUserId();
         //将jwt存入redis中
-        redisTemplate.opsForValue().set(userId,jwt,expiration, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set("jwt-"+userId,jwt,expiration, TimeUnit.SECONDS);
     }
 
     /**
@@ -86,7 +86,7 @@ public class RedisUtil
         //获取jwt中的用户信息
         String userId = jwtUtil.verifyJWT(jwt).getUserId();
         //删除redis中的jwt
-        redisTemplate.delete(userId);
+        redisTemplate.delete("jwt-"+userId);
     }
 
     /**
@@ -94,7 +94,7 @@ public class RedisUtil
      * @param userId 用户id
      */
     public void deleteJwtRedisCacheByUserId(String userId){
-        redisTemplate.delete(userId);
+        redisTemplate.delete("jwt-"+userId);
     }
 
     /**
@@ -103,20 +103,20 @@ public class RedisUtil
      * @return boolean
      */
     public boolean isJwtExist(JwtUserInfo userInfo) {
-        return redisTemplate.opsForValue().get(userInfo.getUserId()) != null;
+        return redisTemplate.opsForValue().get("jwt-"+userInfo.getUserId()) != null;
     }
 
     /**
      * 获取jwt
      */
     public String getJwt(String userId){
-        return redisTemplate.opsForValue().get(userId);
+        return redisTemplate.opsForValue().get("jwt-"+userId);
     }
 
     /**
      * 获取jwt
      */
     public String getJwt(JwtUserInfo userInfo){
-        return redisTemplate.opsForValue().get(userInfo.getUserId());
+        return redisTemplate.opsForValue().get("jwt-"+userInfo.getUserId());
     }
 }
