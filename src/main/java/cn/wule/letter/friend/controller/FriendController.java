@@ -20,7 +20,8 @@ import java.security.Principal;
 import java.util.Collection;
 
 /**
- * 好友关系处理
+ * 用户关系处理，用户间可以加好友，删好友，拉黑名单等。
+ * 在此过程中要确认用户身份，防止恶意操作，例如发送好友请求，必须确认发送者的身份，直接从jwt中获取该用户的信息。
  */
 @RestController
 @Slf4j
@@ -38,8 +39,8 @@ public class FriendController
     @PostMapping("/add")
     public String friendRequest(@RequestBody FriendRequest friendRequest)
     {
-        String code = "500";
-        String msg = "发送好友请求失败";
+        String code;
+        String msg;
         String fromUserId = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         if(friendRequest.getToUserId() == null || friendRequest.getToUserId().isEmpty()){
             code = "400";
@@ -62,8 +63,8 @@ public class FriendController
     @PostMapping("/handle")
     public String handleFriendRequest(@RequestBody FriendRequestHandle handle)
     {
-        String code = "500";
-        String msg = "处理好友请求失败";
+        String code;
+        String msg;
         String toUserId = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         handle.setToUserId(toUserId);
         if(handle.getFromUserId() == null || handle.getFromUserId().isEmpty()) {
@@ -87,8 +88,8 @@ public class FriendController
     @PostMapping("/delete")
     public String deleteFriend(@RequestBody FriendRequest friendRequest)
     {
-        String code = "500";
-        String msg = "删除好友失败";
+        String code;
+        String msg;
         String fromUserId = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         if(friendRequest.getToUserId() == null || friendRequest.getToUserId().isEmpty()) {
             code = "400";
