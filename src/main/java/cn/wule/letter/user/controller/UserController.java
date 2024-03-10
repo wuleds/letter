@@ -48,10 +48,11 @@ public class UserController
     @Resource
     private ObjectMapper om;
 
+    /**登录*/
     @PostMapping("/login")
     public String login(@RequestBody User user, HttpServletRequest request){
-        String code = "500";
-        String msg = "服务器内部错误";
+        String code;
+        String msg;
         String data = null;
         if (user == null) {
             code = "400";
@@ -97,6 +98,7 @@ public class UserController
         return jsonUtil.createResponseModelJsonByString(code, msg, data);
     }
 
+    /**注册*/
     @PostMapping("/signin")
     public String signin(@RequestBody SigninVo signinVo, HttpServletRequest request) {
         String code;
@@ -107,7 +109,7 @@ public class UserController
             msg = "对象为空";
         }else if (signinVo.getUserName() == null || signinVo.getPassword() == null
                 || signinVo.getSecondPassword() == null || signinVo.getMethod() == null
-                || signinVo.getCode() == null || signinVo.getContact() == null) {
+                || signinVo.getCode() == null || signinVo.getS() == null) {
             code = "400";
             msg = "参数为空";
         }else if(signinVo.getUserName().length() < 2 || signinVo.getUserName().length() > 16
@@ -120,10 +122,10 @@ public class UserController
             msg = "两次输入的密码不一致";
         }else {
             //各种信息全部都有，接下来进行验证码的验证
-            if (authCodeService.checkAuthCode(signinVo.getMethod(), signinVo.getContact(), signinVo.getCode())) {
+            if (authCodeService.checkAuthCode(signinVo.getMethod(), signinVo.getS(), signinVo.getCode())) {
                 //验证码正确，销毁验证码，防止二次利用，然后进行注册
-                Contact contact = new ContactIm(signinVo.getContact(),signinVo.getMethod());
-                String userId = userService.addUser(signinVo.getUserName(), signinVo.getPassword(),contact);
+                ContactWay contactWay = new ContactWayIm(signinVo.getS(),signinVo.getMethod());
+                String userId = userService.addUser(signinVo.getUserName(), signinVo.getPassword(), contactWay);
                 if (userId != null) {
                     code = "200";
                     msg = "注册成功";
@@ -150,6 +152,8 @@ public class UserController
         return jsonUtil.createResponseModelJsonByString(code, msg, data);
     }
 
+
+    /**退出登录*/
     @GetMapping("/logout")
     public String logout(HttpServletRequest request){
         String jwt = request.getHeader("Authorization");
@@ -161,6 +165,7 @@ public class UserController
         return jsonUtil.createResponseModelJsonByString("200","退出登录成功",null);
     }
 
+    /**忘记密码，获取重置密码的链接*/
     @PostMapping("/forget")
     public String forget(@RequestBody ForgetVo forgetVo,HttpServletRequest request){
         if(forgetVo == null){
@@ -209,6 +214,7 @@ public class UserController
         return jsonUtil.createResponseModelJsonByString("200","发送重置密码链接成功",null);
     }
 
+    /**重置密码*/
     @PostMapping("/reset")
     public String resetPassword(@RequestBody ResetVo resetVo){
         String longUrl = resetVo.getLongUrl();

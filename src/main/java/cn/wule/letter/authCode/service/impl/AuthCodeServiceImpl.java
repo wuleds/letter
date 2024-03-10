@@ -1,7 +1,6 @@
 package cn.wule.letter.authCode.service.impl;
 //汉江师范学院 数计学院 吴乐创建于2023/12/12 02:04
 
-import cn.wule.letter.authCode.dao.AuthCodeDao;
 import cn.wule.letter.authCode.service.AuthCodeService;
 import cn.wule.letter.authCode.service.SendAuthCodeService;
 import cn.wule.letter.util.RedisUtil;
@@ -26,7 +25,7 @@ public class AuthCodeServiceImpl implements AuthCodeService {
     private SendAuthCodeService sendAuthCodeByPhone;
 
     @Override
-    public void sendAuthCode(String method, String contact) {
+    public void sendAuthCode(String method, String s) {
         SendAuthCodeService sendAuthCodeService;
         //检查联系方式
         if(Objects.equals(method, "email")) {
@@ -40,19 +39,19 @@ public class AuthCodeServiceImpl implements AuthCodeService {
         String code = String.valueOf(new Random().nextInt(9000) + 1000);
         long expiration = 60 * 5;
         //保存验证码到缓存
-        redisUtil.addAuthCodeCache(contact, code, expiration);
+        redisUtil.addAuthCodeCache(s, code, expiration);
         //发送验证码
-        sendAuthCodeService.sendAuthCode(contact, code);
+        sendAuthCodeService.sendAuthCode(s, code);
     }
 
     /**
      * 验证验证码
      * @param method 验证方法，可能是邮箱，或者手机号
-     * @param contact 联系方式，可能是邮箱，或者手机号
+     * @param s 联系方式，可能是邮箱，或者手机号
      * @param code 验证码
      */
     @Override
-    public boolean checkAuthCode(String method, String contact, String code) {
+    public boolean checkAuthCode(String method, String s, String code) {
         return true;
         /*//获取最新的有效的验证码
         String autoCode = redisUtil.getAuthCodeCache(contact);
@@ -70,7 +69,7 @@ public class AuthCodeServiceImpl implements AuthCodeService {
     }
 
     @Override
-    public void sendLongUrl(String method, String contact, String longUrl){
+    public void sendLongUrl(String method, String s, String longUrl){
         SendAuthCodeService sendAuthCodeService;
         //检查联系方式
         if(Objects.equals(method, "email")) {
@@ -81,6 +80,6 @@ public class AuthCodeServiceImpl implements AuthCodeService {
             return;
         }
         //发送长链接
-        sendAuthCodeService.sendLongUrl(contact, longUrl);
+        sendAuthCodeService.sendLongUrl(s, longUrl);
     }
 }

@@ -35,4 +35,7 @@ public interface UserInfoDao {
     /**删除用户信息*/
     @Update("update user_info set del_flag = 0 where user_id = #{userId}")
     void deleteUserInfoById(String userId);
+
+    @Select("select user_photo from user_info where user_id = #{userId}")
+    String getUserInfoPhoto(String userId);
 }

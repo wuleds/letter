@@ -8,7 +8,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 /**
- * 用户信息业务层*/
+ * 用户自定义信息业务层*/
 @Service
 public class UserInfoServiceImpl implements UserInfoService {
     @Resource
@@ -18,18 +18,25 @@ public class UserInfoServiceImpl implements UserInfoService {
         userInfoDao.addUserInfoById(userId);
     }
 
+    /**根据账号获取用户自定义信息*/
     @Override
     public UserInfo getUserInfo(String userId) {
         return userInfoDao.getUserInfoById(userId);
     }
 
+    /**信息更新*/
     @Override
     public void updateUserInfo(String userId, String userSex, String userBirthday, String userAddress, String userPhone, String userEmail) {
         userInfoDao.updateUserInfo(userId, userSex, userBirthday, userAddress, userPhone, userEmail);
     }
 
+    /**删除信息*/
     @Override
     public void deleteUserInfo(String userId) {
         userInfoDao.deleteUserInfoById(userId);
+    }
+
+    public String getUserInfoPhoto(String userId) {
+        return userInfoDao.getUserInfoPhoto(userId);
     }
 }

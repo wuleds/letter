@@ -7,17 +7,23 @@ public interface AuthCodeService {
     /**
      * 发送验证码
      * @param method 验证方法，可能是邮箱，或者手机号
-     * @param contact 联系方式，可能是邮箱，或者手机号
+     * @param s 邮件地址或电话号码
      */
-    void sendAuthCode(String method, String contact);
+    void sendAuthCode(String method, String s);
 
     /**
      * 验证验证码
      * @param method 验证方法，可能是邮箱，或者手机号
-     * @param contact 联系方式，可能是邮箱，或者手机号
+     * @param s 邮件地址或电话号码
      * @param code 验证码
      */
-    boolean checkAuthCode(String method, String contact, String code);
+    boolean checkAuthCode(String method, String s, String code);
 
-    void sendLongUrl(String method, String contact,String longUrl);
+    /**
+     *
+     * @param method 验证方法，可能是邮箱，或者手机号
+     * @param s 邮件地址或电话号码
+     * @param longUrl 长链接
+     */
+    void sendLongUrl(String method, String s,String longUrl);
 }

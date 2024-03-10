@@ -7,4 +7,6 @@ public interface UserInfoService {
     UserInfo getUserInfo(String userId);
     void updateUserInfo(String userId,String userSex,String userBirthday,String userAddress,String userPhone,String userEmail);
     void deleteUserInfo(String userId);
+
+    public String getUserInfoPhoto(String userId);
 }
