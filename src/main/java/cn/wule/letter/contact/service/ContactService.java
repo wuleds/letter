@@ -17,4 +17,6 @@ public interface ContactService
     boolean handleAddContact(String userId,ContactRequestHandle handle);
 
     List<ContactInfo> getContactList(String userId);
+
+    ContactInfo searchContact(String contactId);
 }

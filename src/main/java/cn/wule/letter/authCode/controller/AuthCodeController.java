@@ -22,19 +22,19 @@ public class AuthCodeController
     public String getAuthCode(@RequestBody AuthVo authVo)
     {
         String method = authVo.getMethod();
-        String contact = authVo.getContact();
-        log.info("method: " + method + " contact: " + contact);
-        if(method == null || contact == null || method.isEmpty() || contact.isEmpty())
+        String s = authVo.getS();
+        log.info("method: " + method + " s: " + s);
+        if(method == null || s == null || method.isEmpty() || s.isEmpty())
             return jsonUtil.createResponseModelJsonByString("400", "参数为空", null);
         if(!method.equals("email") && !method.equals("phone"))
             return jsonUtil.createResponseModelJsonByString("400", "联系方式不支持", null);
         //验证联系方式是否为邮箱
-        if(method.equals("email") && !contact.matches("^[a-zA-Z0-9_.-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z]+)+$"))
+        if(method.equals("email") && !s.matches("^[a-zA-Z0-9_.-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z]+)+$"))
             return jsonUtil.createResponseModelJsonByString("400", "邮箱格式错误", null);
         //验证联系方式是否为手机号
-        if(method.equals("phone") && !contact.matches("^1[0-9]{10}$"))
+        if(method.equals("phone") && !s.matches("^1[0-9]{10}$"))
             return jsonUtil.createResponseModelJsonByString("400", "手机号格式错误", null);
-        authCodeService.sendAuthCode(method, contact);
+        authCodeService.sendAuthCode(method, s);
         String result = jsonUtil.createResponseModelJsonByString("200", "验证码已发送", null);
         log.info(result);
         return result;

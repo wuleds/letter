@@ -146,4 +146,19 @@ public class ContactServiceImpl implements ContactService
         }
         return list;
     }
+
+    /**搜索联系人*/
+    @Override
+    public ContactInfo searchContact(String contactId) {
+        ContactInfo contactInfo = new ContactInfo();
+        UserInfo userInfo = userInfoService.getUserInfo(contactId);
+        if(userInfo == null){
+            return null;
+        }
+        contactInfo.setContactId(contactId);
+        contactInfo.setContactName(userInfo.getUserName());
+        contactInfo.setContactPhoto(userInfo.getUserPhoto());
+
+        return contactInfo;
+    }
 }

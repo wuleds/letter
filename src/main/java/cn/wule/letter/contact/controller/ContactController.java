@@ -1,6 +1,7 @@
 package cn.wule.letter.contact.controller;
 //汉江师范学院 数计学院 吴乐创建于2023/12/21 18:03
 
+import cn.wule.letter.contact.model.Contact;
 import cn.wule.letter.contact.model.ContactInfo;
 import cn.wule.letter.contact.model.ContactRequest;
 import cn.wule.letter.contact.model.ContactRequestHandle;
@@ -8,6 +9,8 @@ import cn.wule.letter.contact.service.ContactService;
 import cn.wule.letter.model.user.User;
 import cn.wule.letter.user.service.UserService;
 import cn.wule.letter.util.JsonUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +38,8 @@ public class ContactController
     private UserService userService;
     @Resource
     private JsonUtil jsonUtil;
+    @Resource
+    private ObjectMapper om;
 
     /**发送添加联系人请求*/
     @PostMapping("/add")
@@ -118,4 +123,35 @@ public class ContactController
         String currentUserId = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         return contactService.getContactList(currentUserId);
     }
+
+    /**根据账号获取联系人信息*/
+    @PostMapping("/search")
+    public String searchContact(@RequestBody Contact contact){
+        String code;
+        String msg;
+        String  data = null;
+        String userId = contact.getUserId();
+        ContactInfo contactInfo;
+        //对参数进行检查
+        if(userId == null || userId.isEmpty()) {
+            code = "400";
+            msg = "参数为空";
+        }else {
+            contactInfo = contactService.searchContact(userId);
+            if(contactInfo == null) {
+                code = "400";
+                msg = "用户不存在";
+            }else {
+                code = "200";
+                msg = "查询成功";
+                try {
+                    data = om.writeValueAsString(contactInfo);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return jsonUtil.createResponseModelJsonByString(code,msg,data);
+    }
+
 }

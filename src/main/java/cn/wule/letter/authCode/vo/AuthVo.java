@@ -7,5 +7,5 @@ import lombok.Data;
 public class AuthVo
 {
     private String method;
-    private String contact;
+    private String s;
 }

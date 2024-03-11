@@ -21,7 +21,8 @@ public class UserInfoServiceImpl implements UserInfoService {
     /**根据账号获取用户自定义信息*/
     @Override
     public UserInfo getUserInfo(String userId) {
-        return userInfoDao.getUserInfoById(userId);
+        UserInfo userInfo = userInfoDao.getUserInfoById(userId);
+        return userInfo;
     }
 
     /**信息更新*/

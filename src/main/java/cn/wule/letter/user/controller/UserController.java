@@ -110,6 +110,7 @@ public class UserController
         }else if (signinVo.getUserName() == null || signinVo.getPassword() == null
                 || signinVo.getSecondPassword() == null || signinVo.getMethod() == null
                 || signinVo.getCode() == null || signinVo.getS() == null) {
+            System.out.println(signinVo);
             code = "400";
             msg = "参数为空";
         }else if(signinVo.getUserName().length() < 2 || signinVo.getUserName().length() > 16
@@ -154,12 +155,13 @@ public class UserController
 
 
     /**退出登录*/
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public String logout(HttpServletRequest request){
         String jwt = request.getHeader("Authorization");
         if(jwt == null || jwt.isEmpty()){
             return jsonUtil.createResponseModelJsonByString("400","jwt为空",null);
         }
+        jwt = jwt.replace("Bearer ", "");
         //删除redis中的jwt
         redisUtil.deleteJwtRedisCache(jwt);
         return jsonUtil.createResponseModelJsonByString("200","退出登录成功",null);
@@ -245,15 +247,18 @@ public class UserController
 
     }
 
+    /**自动登录*/
     @PostMapping("/autoLogin")
-    public String autoLogin(String jwt){
+    public String autoLogin(HttpServletRequest request){
         String code;
         String msg;
         String data = null;
+        String jwt = request.getHeader("Authorization");
         if(jwt == null || jwt.isEmpty()){
             code = "400";
             msg = "jwt错误";
         }else {
+            jwt = jwt.replace("Bearer ", "");
             JwtUserInfo jwtUserInfo = jwtUtil.verifyJWT(jwt);
             if (jwtUserInfo == null || jwtUserInfo.getUserId() == null) {
                 code = "400";

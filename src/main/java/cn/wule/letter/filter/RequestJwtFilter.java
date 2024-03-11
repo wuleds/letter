@@ -128,7 +128,8 @@ public class RequestJwtFilter extends OncePerRequestFilter
                     "/user/login",
                     "/auth/get",
                     "/user/forget",
-                    "/user/reset"
+                    "/user/reset",
+                    "/contact/search"
                     -> true;
             default -> false;
         };
