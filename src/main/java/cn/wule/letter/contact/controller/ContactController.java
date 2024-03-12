@@ -119,9 +119,25 @@ public class ContactController
 
     /**获取联系人列表*/
     @PostMapping("/get")
-    public List<ContactInfo> getContactList(){
+    public String getContactList(){
         String currentUserId = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        return contactService.getContactList(currentUserId);
+        List<ContactInfo> list = contactService.getContactList(currentUserId);
+        String code;
+        String msg;
+        String data = null;
+        if(list.isEmpty()) {
+            code = "400";
+            msg = "没有联系人";
+        }else {
+            code = "200";
+            msg = "获取联系人列表成功";
+            try {
+                data = om.writeValueAsString(list);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return jsonUtil.createResponseModelJsonByString(code,msg,data);
     }
 
     /**根据账号获取联系人信息*/
