@@ -53,14 +53,14 @@ public class ContactController
             msg = "参数为空";
         }else if(contactRequest.getFromUserId().equals(contactRequest.getToUserId())) {
             code = "400";
-            msg = "不能添加自己为好友";
+            msg = "不能添加自己为联系人";
         }else if(userService.getUserById(contactRequest.getToUserId()) == null || userService.getUserById(contactRequest.getFromUserId()) == null){
             code = "400";
             msg = "用户不存在";
         }else {
             contactService.addContactRequest(fromUserId, contactRequest.getToUserId(), contactRequest.getInfo());
             code = "200";
-            msg = "发送好友请求成功";
+            msg = "发送联系人请求成功";
         }
         return ResponseEntity.ok(jsonUtil.createResponseModelJsonByString(code,msg,null));
     }
@@ -118,7 +118,7 @@ public class ContactController
     }
 
     /**获取联系人列表*/
-    @PostMapping("/get")
+    @PostMapping("/list")
     public String getContactList(){
         String currentUserId = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         List<ContactInfo> list = contactService.getContactList(currentUserId);
@@ -131,6 +131,31 @@ public class ContactController
         }else {
             code = "200";
             msg = "获取联系人列表成功";
+            try {
+                data = om.writeValueAsString(list);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return jsonUtil.createResponseModelJsonByString(code,msg,data);
+    }
+
+    /**
+     * 获取联系人请求列表
+     */
+    @PostMapping("/request/list")
+    public String getContactRequestList(){
+        String currentUserId = ((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        List<ContactRequest> list = contactService.getContactRequestList(currentUserId);
+        String code;
+        String msg;
+        String data = null;
+        if(list.isEmpty()) {
+            code = "400";
+            msg = "没有联系人请求";
+        }else {
+            code = "200";
+            msg = "获取联系人请求列表成功";
             try {
                 data = om.writeValueAsString(list);
             } catch (JsonProcessingException e) {

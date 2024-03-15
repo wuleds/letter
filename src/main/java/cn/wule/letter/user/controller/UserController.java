@@ -278,4 +278,41 @@ public class UserController
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,data);
     }
+
+    /**获取当前登录的用户的信息*/
+    @PostMapping("/info")
+    public String getUserInfo(HttpServletRequest request){
+        String code;
+        String msg;
+        String data = null;
+        String jwt = request.getHeader("Authorization");
+        if(jwt == null || jwt.isEmpty()){
+            code = "400";
+            msg = "jwt错误";
+        }else {
+            jwt = jwt.replace("Bearer ", "");
+            JwtUserInfo jwtUserInfo = jwtUtil.verifyJWT(jwt);
+            if (jwtUserInfo == null || jwtUserInfo.getUserId() == null) {
+                code = "400";
+                msg = "jwt已经失效";
+            }else {
+                code = "200";
+                msg = "jwt有效";
+                UserInfo userInfo = userInfoService.getUserInfo(jwtUserInfo.getUserId());
+                if(userInfo != null){
+                    try {
+                        data = om.writeValueAsString(userInfo);
+                    } catch (JsonProcessingException e) {
+                        log.info("json转换失败，{}",e.getMessage());
+                        code = "500";
+                        msg = "服务器端错误";
+                    }
+                }else {
+                    code = "500";
+                    msg = "服务器端错误";
+                }
+            }
+        }
+        return jsonUtil.createResponseModelJsonByString(code,msg,data);
+    }
 }

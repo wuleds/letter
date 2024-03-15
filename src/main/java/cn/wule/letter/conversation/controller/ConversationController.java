@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 对话控制层，对话是聊天列表的单位，私聊，群组，频道都可以对话。
+ */
 @RestController
 @RequestMapping("/conversation")
 public class ConversationController

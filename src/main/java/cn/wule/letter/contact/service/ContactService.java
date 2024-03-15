@@ -1,6 +1,7 @@
 package cn.wule.letter.contact.service;
 
 import cn.wule.letter.contact.model.ContactInfo;
+import cn.wule.letter.contact.model.ContactRequest;
 import cn.wule.letter.contact.model.ContactRequestHandle;
 
 import java.util.List;
@@ -19,4 +20,6 @@ public interface ContactService
     List<ContactInfo> getContactList(String userId);
 
     ContactInfo searchContact(String contactId);
+
+    List<ContactRequest> getContactRequestList(String userId);
 }

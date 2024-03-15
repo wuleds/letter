@@ -21,23 +21,23 @@ public interface ContactDao
     void setContact(String userId, String friendListJson);
 
     /** 添加联系人请求*/
-    @Insert("insert into add_contact (id,from_user_id,to_user_id,info,create_date,update_date) values (#{id},#{fromUserId},#{toUserId},#{info},#{createDate},#{createDate})")
+    @Insert("insert into contact_request (id,from_user_id,to_user_id,info,create_date,update_date) values (#{id},#{fromUserId},#{toUserId},#{info},#{createDate},#{createDate})")
     void addAddContact(String id, String fromUserId, String toUserId, String info, String createDate);
 
     /**处理联系人请求*/
-    @Update("update add_contact set status = #{status},update_date = #{updateDate} where from_user_id = #{fromUserId} and to_user_id = #{toUserId}")
+    @Update("update contact_request set status = #{status},update_date = #{updateDate} where from_user_id = #{fromUserId} and to_user_id = #{toUserId}")
     void handleAddContact(String fromUserId, String toUserId, int status, String updateDate);
 
    /**获取所有的添加联系人请求*/
-    @Select("select * from add_contact where to_user_id = #{userId}")
+    @Select("select * from contact_request where to_user_id = #{userId}")
     List<ContactRequest> getAddContactList(String userId);
 
     /**根据id获取对应的添加联系人请求*/
-    @Select("select * from add_contact where id = #{requestId} and to_user_id = #{userId} and status = 0")
+    @Select("select * from contact_request where id = #{requestId} and to_user_id = #{userId} and status = 0")
     ContactRequest getAddContactById(String requestId,String userId);
 
     /**获取联系人请求*/
-    @Select("select from_user_id, to_user_id, info from add_contact where from_user_id = #{fromUserId} and to_user_id = #{toUserId} and status = 0")
+    @Select("select from_user_id, to_user_id, info from contact_request where from_user_id = #{fromUserId} and to_user_id = #{toUserId} and status = 0")
     ContactRequest getAddContact(String fromUserId, String toUserId);
 
     /**根据账号获取用户的联系人信息*/
@@ -45,6 +45,6 @@ public interface ContactDao
     Contact getUserContactById(String userId);
 
     /**更新添加联系人请求的备注*/
-    @Update("update add_contact set info = #{info},update_date = #{nowDate} where from_user_id = #{fromUserId} and to_user_id = #{toUserid}")
+    @Update("update contact_request set info = #{info},update_date = #{nowDate} where from_user_id = #{fromUserId} and to_user_id = #{toUserid}")
     void updateAddContact(String fromUserId, String toUserid, String info, String nowDate);
 }

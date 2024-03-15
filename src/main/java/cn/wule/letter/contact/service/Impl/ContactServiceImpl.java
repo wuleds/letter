@@ -134,9 +134,9 @@ public class ContactServiceImpl implements ContactService
         //获取联系人列表的json格式
         String json = contact.getFriendList();
         //获取用户好友列表的Set。
-        Set<String> contactList = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
+        Set<String> contactSet = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
 
-        for (String contactId : contactList) {
+        for (String contactId : contactSet) {
             ContactInfo contactInfo = new ContactInfo();
             contactInfo.setContactId(contactId);
             UserInfo userInfo = userInfoService.getUserInfo(contactId);
@@ -160,5 +160,10 @@ public class ContactServiceImpl implements ContactService
         contactInfo.setContactPhoto(userInfo.getUserPhoto());
 
         return contactInfo;
+    }
+
+    @Override
+    public List<ContactRequest> getContactRequestList(String userId) {
+        return contactDao.getAddContactList(userId);
     }
 }

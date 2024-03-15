@@ -27,8 +27,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     /**信息更新*/
     @Override
-    public void updateUserInfo(String userId, String userSex, String userBirthday, String userAddress, String userPhone, String userEmail) {
-        userInfoDao.updateUserInfo(userId, userSex, userBirthday, userAddress, userPhone, userEmail);
+    public void updateUserInfo(String userId, String userName,String userSex, String userBirthday, String userAddress, String userPhone, String userEmail) {
+        userInfoDao.updateUserInfo(userId, userName,userSex, userBirthday, userAddress, userPhone, userEmail);
     }
 
     /**删除信息*/

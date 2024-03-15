@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
         userDao.addNormalUser(userId,userName,encodePassword, NowDate.getNowDate());
         //添加用户信息表列
         userInfoDao.addUserInfoById(userId);
-        userInfoDao.updateUserInfo(userId,null,null,null, contactWay.PHONE, contactWay.EMAIL);
+        userInfoDao.updateUserInfo(userId,userName,null,null,null, contactWay.PHONE, contactWay.EMAIL);
         //添加用户的联系人表列
         contactService.addContactList(userId,userName);
         //TODO 用户的群组表列
