@@ -7,6 +7,8 @@ import cn.wule.letter.contact.model.ContactRequest;
 import cn.wule.letter.contact.model.ContactRequestHandle;
 import cn.wule.letter.contact.service.ContactService;
 import cn.wule.letter.model.user.User;
+import cn.wule.letter.model.user.UserInfo;
+import cn.wule.letter.user.service.UserInfoService;
 import cn.wule.letter.user.service.UserService;
 import cn.wule.letter.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -36,6 +38,8 @@ public class ContactController
     private ContactService contactService;
     @Resource
     private UserService userService;
+    @Resource
+    private UserInfoService userInfoService;
     @Resource
     private JsonUtil jsonUtil;
     @Resource
@@ -83,10 +87,10 @@ public class ContactController
         } else {
             if(contactService.handleAddContact(toUserId,handle)){
                 code = "200";
-                msg = "处理好友请求成功";
+                msg = "处理联系人请求成功";
             }else {
                 code = "400";
-                msg = "处理好友请求失败";
+                msg = "处理联系人请求失败";
             }
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,null);
@@ -112,7 +116,7 @@ public class ContactController
         }else {
             contactService.deleteContact(fromUserId, deletedContactId);
             code = "200";
-            msg = "删除好友成功";
+            msg = "删除联系人成功";
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,null);
     }
@@ -156,6 +160,11 @@ public class ContactController
         }else {
             code = "200";
             msg = "获取联系人请求列表成功";
+            for (ContactRequest contactRequest : list) {
+                UserInfo userInfo = userInfoService.getUserInfo(contactRequest.getFromUserId());
+                contactRequest.setUserName(userInfo.getUserName());
+                contactRequest.setUserPhoto(userInfo.getUserPhoto());
+            }
             try {
                 data = om.writeValueAsString(list);
             } catch (JsonProcessingException e) {

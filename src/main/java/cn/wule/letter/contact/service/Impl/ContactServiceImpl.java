@@ -17,10 +17,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -54,54 +51,54 @@ public class ContactServiceImpl implements ContactService
         }
     }
 
-    /** 更新用户的联系人列表*/
+    /** 向用户的联系人列表添加联系人*/
     @Override
     public boolean updateContactList(String userId, String contactId) {
-        //获取用户好友列表
+        //获取用户联系人列表
         //反序列为Set<String>格式,添加信息
-        //序列化为json格式,存入数据库
+        //序列化为json,存入数据库
         Contact contact = contactDao.getUserContactById(userId);
-        String json = contact.getFriendList();
-        //获取用户好友列表的Set。
-        Set<String> friendList;
-        if(json != null){
-          friendList  = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
+        String setJson = contact.getContactList();
+        //获取用户联系人列表的Set。
+        Set<String> contactSet;
+        if(!Objects.equals(setJson, "") && setJson != null){
+          contactSet  = om.convertValue(setJson, om.getTypeFactory().constructCollectionType(Set.class, String.class));
         }else {
-            friendList = new HashSet<>();
+            contactSet = new HashSet<>();
         }
-        friendList.add(contactId);
-        String friendListJson;
+        contactSet.add(contactId);
+        String contactSetJson;
         try {
-            friendListJson = om.writeValueAsString(friendList);
+            contactSetJson = om.writeValueAsString(contactSet);
         } catch (JsonProcessingException e) {
-            log.error("序列化用户好友列表失败");
+            log.error("序列化用户联系人列表失败");
             return false;
         }
-        contactDao.setContact(userId,friendListJson);
+        contactDao.setContact(userId,contactSetJson);
         return true;
     }
 
     /**删除联系人*/
     @Override
     public boolean deleteContact(String userId, String contactId) {
-        //获取用户好友列表
+        //获取用户联系人列表
         //反序列为Set<String>格式,删除信息
         //序列化为json格式,存入数据库
         Contact contact = contactDao.getUserContactById(userId);
-        String json = contact.getFriendList();
-        //获取用户好友列表的Set。
-        Set<String> friendList = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
-        //删除好友
-        friendList.remove(contactId);
+        String json = contact.getContactList();
+        //获取用户联系人列表的Set。
+        Set<String> contactSet = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
+        //删除联系人
+        contactSet.remove(contactId);
 
-        String friendListJson;
+        String contactListJson;
         try {
-            friendListJson = om.writeValueAsString(friendList);
+            contactListJson = om.writeValueAsString(contactSet);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
 
-        contactDao.setContact(userId,friendListJson);
+        contactDao.setContact(userId,contactListJson);
         return true;
     }
 
@@ -116,9 +113,9 @@ public class ContactServiceImpl implements ContactService
         String toUserId = contactRequest.getToUserId();
         int status = handle.getStatus();
         //有处理结果，且该请求未被处理，且处理者就是被请求者。
-        //更新好友请求状态,由被请求者处理
+        //更新联系人请求状态,由被请求者处理
         contactDao.handleAddContact(fromUserId,toUserId,status,NowDate.getNowDate());
-        //如果同意,则添加好友
+        //如果同意,则添加联系人
         if (status == 1){
             return updateContactList(fromUserId, toUserId) && updateContactList(toUserId, fromUserId);
         }else {
@@ -132,17 +129,19 @@ public class ContactServiceImpl implements ContactService
         Contact contact = contactDao.getUserContactById(userId);
         List<ContactInfo> list = new ArrayList<>();
         //获取联系人列表的json格式
-        String json = contact.getFriendList();
-        //获取用户好友列表的Set。
-        Set<String> contactSet = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
+        String json = contact.getContactList();
+        //获取用户联系人列表的Set。
 
-        for (String contactId : contactSet) {
-            ContactInfo contactInfo = new ContactInfo();
-            contactInfo.setContactId(contactId);
-            UserInfo userInfo = userInfoService.getUserInfo(contactId);
-            contactInfo.setContactName(userInfo.getUserName());
-            contactInfo.setContactPhoto(userInfo.getUserPhoto());
-            list.add(contactInfo);
+        if(json != null && !json.isEmpty() && !Objects.equals(json, "")) {
+            Set<String> contactSet = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
+            for (String contactId : contactSet) {
+                ContactInfo contactInfo = new ContactInfo();
+                contactInfo.setContactId(contactId);
+                UserInfo userInfo = userInfoService.getUserInfo(contactId);
+                contactInfo.setContactName(userInfo.getUserName());
+                contactInfo.setContactPhoto(userInfo.getUserPhoto());
+                list.add(contactInfo);
+            }
         }
         return list;
     }

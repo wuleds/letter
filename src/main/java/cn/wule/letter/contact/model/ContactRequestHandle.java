@@ -4,7 +4,7 @@ package cn.wule.letter.contact.model;
 import lombok.Data;
 
 /**
- * 好友请求处理
+ * 联系人请求处理
  * */
 @Data
 public class ContactRequestHandle

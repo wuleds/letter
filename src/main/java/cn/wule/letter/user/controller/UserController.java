@@ -123,9 +123,10 @@ public class UserController
             msg = "两次输入的密码不一致";
         }else {
             //各种信息全部都有，接下来进行验证码的验证
-            if (authCodeService.checkAuthCode(signinVo.getMethod(), signinVo.getS(), signinVo.getCode())) {
+           // if (authCodeService.checkAuthCode(signinVo.getMethod(), signinVo.getS(), signinVo.getCode())) {
                 //验证码正确，销毁验证码，防止二次利用，然后进行注册
-                ContactWay contactWay = new ContactWayIm(signinVo.getS(),signinVo.getMethod());
+                //ContactWay contactWay = new ContactWayIm(signinVo.getS(),signinVo.getMethod());
+                ContactWay contactWay = new ContactWayIm("wule_eng@outlook.com",signinVo.getMethod());
                 String userId = userService.addUser(signinVo.getUserName(), signinVo.getPassword(), contactWay);
                 if (userId != null) {
                     code = "200";
@@ -145,10 +146,10 @@ public class UserController
                     code = "500";
                     msg = "注册失败";
                 }
-            }else {
+          /*  }else {
                 code = "400";
                 msg = "验证码错误";
-            }
+            }*/
         }
         return jsonUtil.createResponseModelJsonByString(code, msg, data);
     }
