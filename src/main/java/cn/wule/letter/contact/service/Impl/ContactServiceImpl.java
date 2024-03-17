@@ -12,6 +12,7 @@ import cn.wule.letter.user.service.UserInfoService;
 import cn.wule.letter.util.NowDate;
 import cn.wule.letter.util.UUIDUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -60,9 +61,13 @@ public class ContactServiceImpl implements ContactService
         Contact contact = contactDao.getUserContactById(userId);
         String setJson = contact.getContactList();
         //获取用户联系人列表的Set。
-        Set<String> contactSet;
+        HashSet<String> contactSet;
         if(!Objects.equals(setJson, "") && setJson != null){
-          contactSet  = om.convertValue(setJson, om.getTypeFactory().constructCollectionType(Set.class, String.class));
+            try {
+                contactSet = om.readValue(setJson, new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }else {
             contactSet = new HashSet<>();
         }
@@ -87,7 +92,12 @@ public class ContactServiceImpl implements ContactService
         Contact contact = contactDao.getUserContactById(userId);
         String json = contact.getContactList();
         //获取用户联系人列表的Set。
-        Set<String> contactSet = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
+        HashSet<String> contactSet;
+        try {
+            contactSet = om.readValue(json, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         //删除联系人
         contactSet.remove(contactId);
 
@@ -133,7 +143,12 @@ public class ContactServiceImpl implements ContactService
         //获取用户联系人列表的Set。
 
         if(json != null && !json.isEmpty() && !Objects.equals(json, "")) {
-            Set<String> contactSet = om.convertValue(json, om.getTypeFactory().constructCollectionType(Set.class, String.class));
+            Set<String> contactSet;
+            try {
+                contactSet = om.readValue(json, new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
             for (String contactId : contactSet) {
                 ContactInfo contactInfo = new ContactInfo();
                 contactInfo.setContactId(contactId);
@@ -161,6 +176,7 @@ public class ContactServiceImpl implements ContactService
         return contactInfo;
     }
 
+    /**获取联系人请求列表*/
     @Override
     public List<ContactRequest> getContactRequestList(String userId) {
         return contactDao.getAddContactList(userId);

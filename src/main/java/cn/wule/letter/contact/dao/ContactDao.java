@@ -29,7 +29,7 @@ public interface ContactDao
     void handleAddContact(String fromUserId, String toUserId, int status, String updateDate);
 
    /**获取所有的添加联系人请求*/
-    @Select("select * from contact_request where to_user_id = #{userId}")
+    @Select("select * from contact_request where to_user_id = #{userId} and status = 0")
     List<ContactRequest> getAddContactList(String userId);
 
     /**根据id获取对应的添加联系人请求*/

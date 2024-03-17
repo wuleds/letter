@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 联系人模块控制层
@@ -81,7 +82,7 @@ public class ContactController
         if(requestId == null || requestId.isEmpty()) {
             code = "400";
             msg = "参数为空";
-        }else if(status != 2 && status != 3) {
+        }else if(status != 1 && status != 2) {
             code = "400";
             msg = "参数错误";
         } else {
@@ -203,5 +204,4 @@ public class ContactController
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,data);
     }
-
 }
