@@ -11,5 +11,5 @@ public class Conversation
     String type;   //对方的类型,可能为private,group,channel
     String chatId; //对话的id
     String myId;   //当前用户的id
-    String id;     //对方的id,可能为userId,groupId,channelId
+    String toId;   //对方的id
 }

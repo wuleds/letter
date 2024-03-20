@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * 联系人模块控制层
@@ -62,6 +61,7 @@ public class ContactController
         }else if(userService.getUserById(contactRequest.getToUserId()) == null || userService.getUserById(contactRequest.getFromUserId()) == null){
             code = "400";
             msg = "用户不存在";
+            //TODO 不能给联系人发送添加联系人请求
         }else {
             contactService.addContactRequest(fromUserId, contactRequest.getToUserId(), contactRequest.getInfo());
             code = "200";
@@ -99,8 +99,8 @@ public class ContactController
 
     /**删除联系人*/
     @PostMapping("/delete")
-    public String deleteContact(@RequestBody String  deletedContactId)
-    {
+    public String deleteContact(@RequestBody Contact contact) {
+        String deletedContactId = contact.getUserId();
         String code;
         String msg;
         //获取当前用户信息。

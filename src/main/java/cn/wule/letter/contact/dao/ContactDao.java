@@ -18,7 +18,7 @@ public interface ContactDao
 
     /**更新用户的联系人列表*/
     @Update("update contact set contact_list = #{contactSetJson}  where user_id = #{userId}")
-    void setContact(String userId, String contactSetJson);
+    boolean setContact(String userId, String contactSetJson);
 
     /** 添加联系人请求*/
     @Insert("insert into contact_request (id,from_user_id,to_user_id,info,create_date,update_date) values (#{id},#{fromUserId},#{toUserId},#{info},#{createDate},#{createDate})")

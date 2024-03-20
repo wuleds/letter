@@ -100,6 +100,20 @@ public class ContactServiceImpl implements ContactService
         }
         //删除联系人
         contactSet.remove(contactId);
+        //获取对方的联系人列表
+        Contact contact2 = contactDao.getUserContactById(contactId);
+        //反序列为Set<String>格式,删除信息
+        //序列化为json格式,存入数据库
+        String json2 = contact2.getContactList();
+        //获取用户联系人列表的Set。
+        HashSet<String> contactSet2;
+        try {
+            contactSet2 = om.readValue(json2, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        //删除联系人
+        contactSet2.remove(userId);
 
         String contactListJson;
         try {
@@ -107,9 +121,20 @@ public class ContactServiceImpl implements ContactService
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
-        contactDao.setContact(userId,contactListJson);
-        return true;
+        //存入数据库
+        String contactListJson2;
+        try {
+            contactListJson2 = om.writeValueAsString(contactSet2);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        if( contactDao.setContact(userId,contactListJson) && contactDao.setContact(contactId,contactListJson2)){
+            return true;
+        }else {
+            contactDao.setContact(userId,json);
+            contactDao.setContact(contactId,json2);
+            return false;
+        }
     }
 
     /**处理联系人请求*/
