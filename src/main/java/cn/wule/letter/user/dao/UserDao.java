@@ -33,6 +33,9 @@ public interface UserDao
     @Select("select count(*) from user where user_id = #{userId} and del_flag = '1'")
     int queryUserByUserId(String userId);
 
+    /**
+     * 查询用户加密后的密码
+     */
     @Select("select user_password from user where user_id = #{userId}")
     String checkUser(String userId);
 

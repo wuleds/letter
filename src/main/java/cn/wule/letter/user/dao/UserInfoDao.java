@@ -38,4 +38,22 @@ public interface UserInfoDao {
 
     @Select("select user_photo from user_info where user_id = #{userId}")
     String getUserInfoPhoto(String userId);
+
+    /**
+     * 创建用户加入的群组列表
+     */
+    @Insert("insert into user_join_group(user_id,group_list,del_flag) values(#{userId},NULL,0)")
+    void addUserGroupList(String userId);
+
+    /**
+     * 创建用户加入的频道列表
+     */
+    @Insert("insert into user_join_channel(user_id,channel_list,del_flag) values(#{userId},NULL,0)")
+    void addUserChannelList(String userId);
+
+    /**
+     * 创建用户的聊天列表表列
+     */
+    @Insert("insert into chat_list(userId, list, createDate, updateDate, status) value (#{userId}, NULL, now(), now(), 0)")
+    void addUserChatList(String userId);
 }
