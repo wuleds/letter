@@ -13,6 +13,7 @@ import cn.wule.letter.util.UserUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -44,6 +45,7 @@ public class UserServiceImpl implements UserService {
      * @return 是否添加成功,最多获取10次用户id。
      */
     @Override
+    @Transactional
     public String addUser(String userName, String userPassword, ContactWay contactWay) {
         //创建新的用户Id
         int i = 1;

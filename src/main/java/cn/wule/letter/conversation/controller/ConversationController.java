@@ -7,7 +7,9 @@ import cn.wule.letter.model.user.User;
 import cn.wule.letter.util.JsonUtil;
 import cn.wule.letter.util.UUIDUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
+import org.apache.ibatis.javassist.NotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,8 +68,29 @@ public class ConversationController
             } catch (JsonProcessingException e) {
                 code = "500";
                 msg = "新建对话失败";
+            } catch (NotFoundException e) {
+                code = "500";
+                msg = e.getMessage();
             }
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,chatId);
+    }
+
+    @PostMapping("list")
+    public String getChatList(User user){
+        String code = "400";
+        String msg;
+        String myId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        if(myId == null || user.getUserId() == null) {
+            msg = "账号错误";
+        }else if(!myId.equals(user.getUserId())) {
+            msg = "账号错误";
+        } else {
+            code = "200";
+            msg = "获取对话列表成功";
+            String  conversations = privateConversationService.getChatList(myId);
+            return jsonUtil.createResponseModelJsonByString(code,msg,conversations);
+        }
+        return jsonUtil.createResponseModelJsonByString(code,msg,null);
     }
 }

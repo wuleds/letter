@@ -27,6 +27,7 @@ application-production.yml
 application-development.yml
 application.yml
 .fastRequest
+wules.space.pfx
 
 ### NetBeans ###
 /nbproject/private/

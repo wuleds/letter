@@ -1,6 +1,7 @@
 package cn.wule.letter.conversation.dao;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 /**
@@ -25,4 +26,10 @@ public interface PrivateConversationDao {
     @Select("insert into private_conversation(chat_id, create_date, update_date, one_id, two_id, del_flag) " +
             "values(#{chatId}, now(), now(), #{oneId}, #{twoId}, 0)")
     boolean insertPrivateConversation(String chatId, String oneId, String twoId);
+
+    /**
+     * 根据chatId创建消息表
+     * @param chatId 会话id
+     */
+    String createMessageTable(@Param("chatId") String chatId);
 }

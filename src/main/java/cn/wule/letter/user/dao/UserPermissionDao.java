@@ -1,7 +1,7 @@
 package cn.wule.letter.user.dao;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -11,5 +11,5 @@ public interface UserPermissionDao
     /**
      * 获取用户权限
      */
-    List<String> getUserPermissionByUserId(String userId);
+    List<String> getUserPermissionByUserId(@Param("userId") String userId);
 }

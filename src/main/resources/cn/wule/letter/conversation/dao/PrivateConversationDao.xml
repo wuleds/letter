@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wule.letter.conversation.dao.PrivateConversationDao">
+    <update id="createMessageTable" parameterType="java.lang.String">
+        <![CDATA[
+            create table if not exists p_${chatId} (
+                messageId int primary key auto_increment comment '消息id',
+                senderId varchar(255) not null comment '发送者id',
+                receiverId varchar(255) not null comment '接收者id',
+                type varchar(10) not null comment '消息类型',
+                text varchar(1000) comment '文本消息',
+                image varchar(255) comment '图片名字数组',
+                video varchar(255) comment '视频名字数组',
+                audio varchar(255) comment '音频名字',
+                file varchar(255) comment '文件名字',
+                replyStatus int not null comment '0不是回复，1是回复',
+                replyId varchar(255) comment '被回复的消息id',
+                createDate datetime not null comment '创建时间',
+                updateDate datetime not null comment '更新时间',
+                status int not null comment '0为正常，1为被删除，2为编辑过'
+            )
+        ]]>
+    </update>
+
+</mapper>

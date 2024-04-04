@@ -20,6 +20,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Objects;
 
 @RestController
@@ -315,5 +319,13 @@ public class UserController
             }
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,data);
+    }
+
+    @PostMapping("/generateKey")
+    public String generateKey() throws NoSuchAlgorithmException {
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(256); // 可选的密钥长度
+        SecretKey secretKey = keyGen.generateKey();
+        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
     }
 }
