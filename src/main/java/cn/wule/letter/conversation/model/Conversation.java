@@ -1,10 +1,14 @@
 package cn.wule.letter.conversation.model;
 //汉江师范学院 数计学院 吴乐创建于2024/3/13 0:15
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class Conversation
 {

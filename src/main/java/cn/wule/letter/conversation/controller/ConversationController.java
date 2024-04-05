@@ -5,10 +5,9 @@ import cn.wule.letter.conversation.model.Conversation;
 import cn.wule.letter.conversation.service.PrivateConversationService;
 import cn.wule.letter.model.user.User;
 import cn.wule.letter.util.JsonUtil;
-import cn.wule.letter.util.UUIDUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.javassist.NotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,13 +15,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashSet;
 
 /**
  * 对话控制层，对话是聊天列表的单位，私聊，群组，频道都可以对话。
  */
 @RestController
 @RequestMapping("/conversation")
+@Slf4j
 public class ConversationController
 {
     @Resource
@@ -49,7 +48,7 @@ public class ConversationController
         String code = "400";
         String msg;
         String type = conversation.getType();
-        String chatId = null;
+        String data = null;
         String myId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         String toId = conversation.getToId();
 
@@ -59,12 +58,14 @@ public class ConversationController
             msg = "对话类型参数错误";
         }else if(!myId.equals(conversation.getMyId())) {
             msg = "账号错误";
-        }else {
+        }else if(false){
+            //TODO 判断黑名单
+        } else {
             //判断完毕，创建对话
             code = "200";
             msg = "新建对话成功";
             try {
-                chatId = privateConversationService.newConversation(myId,toId,type);
+                data = privateConversationService.newConversation(myId,toId,type);
             } catch (JsonProcessingException e) {
                 code = "500";
                 msg = "新建对话失败";
@@ -73,22 +74,30 @@ public class ConversationController
                 msg = e.getMessage();
             }
         }
-        return jsonUtil.createResponseModelJsonByString(code,msg,chatId);
+        return jsonUtil.createResponseModelJsonByString(code,msg, data);
     }
 
     @PostMapping("list")
-    public String getChatList(User user){
+    public String getChatList(@RequestBody User user){
         String code = "400";
         String msg;
         String myId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        log.info("获取对话列表，id：{},userId:{}",myId,user.getUserId());
         if(myId == null || user.getUserId() == null) {
-            msg = "账号错误";
+            msg = "没有账号信息";
         }else if(!myId.equals(user.getUserId())) {
-            msg = "账号错误";
+            msg = "账号不相同";
         } else {
+            msg = "获取对话列表失败";
+            String conversations;
+            try {
+                conversations = privateConversationService.getChatList(myId);
+            } catch (JsonProcessingException e) {
+                return jsonUtil.createResponseModelJsonByString(code,msg,null);
+            }
             code = "200";
             msg = "获取对话列表成功";
-            String  conversations = privateConversationService.getChatList(myId);
+            log.info("获取对话列表，id：{}，list：{}",myId,conversations);
             return jsonUtil.createResponseModelJsonByString(code,msg,conversations);
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,null);

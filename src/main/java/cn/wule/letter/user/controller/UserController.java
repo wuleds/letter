@@ -146,6 +146,7 @@ public class UserController
                             .code("200")
                             .msg("注册成功").build();
                     signinLogService.insertLog(signinLog);
+                    log.info("用户注册，用户名：{}，账号：{}，时间：{}",signinVo.getUserName(),userId, NowDate.getNowDate());
                 }else {
                     code = "500";
                     msg = "注册失败";
@@ -169,6 +170,7 @@ public class UserController
         jwt = jwt.replace("Bearer ", "");
         //删除redis中的jwt
         redisUtil.deleteJwtRedisCache(jwt);
+        log.info("用户退出登录，时间：{}",NowDate.getNowDate());
         return jsonUtil.createResponseModelJsonByString("200","退出登录成功",null);
     }
 
@@ -218,6 +220,7 @@ public class UserController
         //向联系方式发送长链接
         longUrl = "http://" + request.getServerName() + "/user/reset/" + longUrl;
         authCodeService.sendLongUrl(method,contact,longUrl);
+        log.info("用户忘记密码，账号：{}，时间：{}",userId,NowDate.getNowDate());
         return jsonUtil.createResponseModelJsonByString("200","发送重置密码链接成功",null);
     }
 
@@ -245,6 +248,7 @@ public class UserController
         if(userService.updatePassword(userId,password)) {
             //移除长链接
             redisUtil.deleteLongUrlCache(longUrl);
+            log.info("用户重置密码，账号：{}，时间：{}",userId,NowDate.getNowDate());
             return jsonUtil.createResponseModelJsonByString("200", "修改密码成功", null);
         }else {
             return jsonUtil.createResponseModelJsonByString("500","修改密码失败",null);
@@ -279,6 +283,7 @@ public class UserController
                     code = "500";
                     msg = "服务器端错误";
                 }
+                log.info("用户自动登录，账号：{}，时间：{}",jwtUserInfo.getUserId(),NowDate.getNowDate());
             }
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,data);

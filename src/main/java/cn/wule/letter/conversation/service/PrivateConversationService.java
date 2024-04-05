@@ -18,5 +18,5 @@ public interface PrivateConversationService {
 
 
     /**获取对话列表*/
-    String getChatList(String userId);
+    String getChatList(String userId) throws JsonProcessingException;
 }
