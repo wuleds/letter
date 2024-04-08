@@ -124,12 +124,15 @@ public class RequestJwtFilter extends OncePerRequestFilter
     public boolean noVerify(String uri){
         return switch (uri) {
             case "/user/autoLogin",
-                    "/user/signin",
-                    "/user/login",
-                    "/auth/get",
-                    "/user/forget",
-                    "/user/reset",
-                    "/contact/search"
+                 "/user/signin",
+                 "/user/login",
+                 "/auth/get",
+                 "/user/forget",
+                 "/user/reset",
+                 "/contact/search",
+                 "/file/image/upload",
+                 "/file/video/upload",
+                 "/file/file/upload"
                     -> true;
             default -> false;
         };
