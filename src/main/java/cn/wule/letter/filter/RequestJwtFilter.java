@@ -65,11 +65,12 @@ public class RequestJwtFilter extends OncePerRequestFilter
             requestLogServiceImpl.insertLog(requestLog);
             return;
         }
+        log.info(request.toString());
         //从请求头获取授权信息，如果没有则直接拒绝
         String strAuth = request.getHeader("Authorization");
         if (strAuth == null) {
             jsonUtil.writeStringJsonToResponse(response,"401","没有授权信息，请登录","");
-            log.info("无授权信息登录，uri:{},ip:{}，主机名:{}",uri,request.getRemoteAddr(),request.getRemoteHost());
+            log.info("无授权信息，uri:{},ip:{}，主机名:{}",uri,request.getRemoteAddr(),request.getRemoteHost());
             requestLog.setCode("401");
             requestLog.setMsg("没有授权信息，请登录");
             requestLogServiceImpl.insertLog(requestLog);
@@ -132,7 +133,9 @@ public class RequestJwtFilter extends OncePerRequestFilter
                  "/contact/search",
                  "/file/image/upload",
                  "/file/video/upload",
-                 "/file/file/upload"
+                 "/file/file/upload",
+                 "/link",
+                 "/ws"
                     -> true;
             default -> false;
         };

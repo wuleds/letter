@@ -46,7 +46,7 @@ public class WebSecurityConfig{
         //不创建session
         http.sessionManagement((sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         //禁止同源保护
-
+        http.cors(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
