@@ -65,7 +65,6 @@ public class RequestJwtFilter extends OncePerRequestFilter
             requestLogServiceImpl.insertLog(requestLog);
             return;
         }
-        log.info(request.toString());
         //从请求头获取授权信息，如果没有则直接拒绝
         String strAuth = request.getHeader("Authorization");
         if (strAuth == null) {
@@ -134,8 +133,7 @@ public class RequestJwtFilter extends OncePerRequestFilter
                  "/file/image/upload",
                  "/file/video/upload",
                  "/file/file/upload",
-                 "/link",
-                 "/ws"
+                 "/link"
                     -> true;
             default -> false;
         };
