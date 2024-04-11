@@ -1,9 +1,11 @@
 package cn.wule.letter.connect.service.impl;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 11 00:29
 
+import cn.wule.letter.connect.dao.MessageDao;
 import cn.wule.letter.connect.model.MessageVo;
 import cn.wule.letter.connect.model.UserMessage;
 import cn.wule.letter.connect.service.WebSocketService;
+import cn.wule.letter.contact.dao.ContactDao;
 import cn.wule.letter.model.JwtUserInfo;
 import cn.wule.letter.util.JwtUtil;
 import cn.wule.letter.util.RedisUtil;
@@ -19,6 +21,10 @@ public class WebSocketServiceImpl implements WebSocketService
     private RedisUtil redisUtil;
     @Resource
     private JwtUtil jwtUtil;
+    @Resource
+    private MessageDao messageDao;
+    @Resource
+    private ContactDao contactDao;
 
     /**
      * 检查jwt真实性*/
@@ -43,10 +49,33 @@ public class WebSocketServiceImpl implements WebSocketService
      * */
     @Override
     public boolean persistence(UserMessage userMessage) {
-        //TODO 将用户发送给其他用户或群组或频道的消息存入数据库
-        //首先获取chatId，
-        //然后确定chatId的类型，
-        //然后将消息存入数据库
+        String chatId = userMessage.getChatId();
+        String chatType = messageDao.selectTypeByChatId(chatId);
+        String userId = userMessage.getSender();
+        String toId = userMessage.getReceiver();
+        switch (chatType){
+            case "private":
+                //黑名单,是否建立了对话
+                if(chatId.equals(messageDao.selectChatIdById(userId,toId))){
+                    if(isBlackList(userId,toId) && isBlackList(toId,userId)){
+                        return false;
+                    }
+                }
+                break;
+            case "group":
+                //TODO 黑名单，在不在群中
+                if(isBlackList(userId,chatId)){
+                    return false;
+                }
+                break;
+            case "channel":
+                //TODO 黑名单，是否关注频道
+                break;
+            default:
+                return false;
+        }
+        //持久化消息
+        messageDao.saveMessage();
 
         return true;
     }
@@ -73,5 +102,11 @@ public class WebSocketServiceImpl implements WebSocketService
         //返回的List中的顺序与传入的chatIds一致
 
         return List.of();
+    }
+
+    /**根据id查询是否在黑名单中*/
+    private boolean isBlackList(String id, String toId){
+        String blackList = contactDao.getBlackList(toId);
+        return blackList.contains(id);
     }
 }

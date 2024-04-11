@@ -47,4 +47,12 @@ public interface ContactDao
     /**更新添加联系人请求的备注*/
     @Update("update contact_request set info = #{info},update_date = #{nowDate} where from_user_id = #{fromUserId} and to_user_id = #{toUserid}")
     void updateAddContact(String fromUserId, String toUserid, String info, String nowDate);
+
+    /**获取黑名单列表*/
+    @Select("select black_list from user_black_list where user_id = #{userId} and del_flag= 0")
+    String getBlackList(String userId);
+
+    /**更新黑名单列表*/
+    @Update("update user_black_list set black_list = #{blackList} where user_id = #{userId} and del_flag = 0")
+    void setBlackList(String userId, String blackList);
 }

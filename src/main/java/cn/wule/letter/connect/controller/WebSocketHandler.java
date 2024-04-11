@@ -1,4 +1,4 @@
-package cn.wule.letter.connect;
+package cn.wule.letter.connect.controller;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 10 01:40
 
 import cn.wule.letter.connect.model.UserMessage;
@@ -56,16 +56,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         UserMessage userMessage;
         try{
-            log.info("接收到消息：{}", message.getPayload());
             userMessage= om.readValue(message.getPayload(), new TypeReference<UserMessage>() {});
         }catch (Exception e){
             log.error("消息解析失败");
+            session.close();
             return;
         }
         String type = userMessage.getType();
         String Authorization = userMessage.getAuthorization();
-        if(type == null || Authorization == null) {
-            log.error("消息类型为空或验证信息为空");
+        if(userMessage.existNull()) {
+            session.close();
             return;
         }
         String userId = webSocketService.checkToken(Authorization);
@@ -73,6 +73,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
             session.sendMessage(new TextMessage("验证失败"));
             session.close();
             log.error("用户验证失败");
+            return;
+        }
+        if(userMessage.getChatId() == null){
+            session.sendMessage(new TextMessage("聊天ID为空"));
+            session.close();
+            log.error("聊天ID为空");
             return;
         }
         switch (type) {
@@ -99,6 +105,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             }
             default -> {
                 //TODO 处理消息
+                log.info("接收到消息：{}", userMessage.getText());
                 if(webSocketService.persistence(userMessage)){
                     session.sendMessage(new TextMessage("消息发送成功"));
                 }else {
@@ -110,7 +117,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        //TODO 处理连接关闭
         super.afterConnectionClosed(session, status);
         // 当连接关闭时，移除对应的会话心跳记录
         log.info("连接关闭");

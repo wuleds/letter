@@ -206,4 +206,26 @@ public class ContactServiceImpl implements ContactService
     public List<ContactRequest> getContactRequestList(String userId) {
         return contactDao.getAddContactList(userId);
     }
+
+    /**拉黑*/
+    public boolean blackList(String userId,String contactId){
+        //获取用户黑名单
+        String blackListJson = contactDao.getBlackList(userId);
+        //反序列为Set<String>格式,添加信息
+        //序列化为json格式,存入数据库
+        HashSet<String> blackList;
+        if(blackListJson != null && !blackListJson.isEmpty() && !Objects.equals(blackListJson, "")) {
+            try {
+                blackList = om.readValue(blackListJson, new TypeReference<>() {});
+                blackList.add(contactId);
+                blackListJson = om.writeValueAsString(blackList);
+                contactDao.setBlackList(userId,blackListJson);
+
+                return true;
+            } catch (JsonProcessingException e) {
+                log.info("反序列化黑名单失败");
+            }
+        }
+        return false;
+    }
 }
