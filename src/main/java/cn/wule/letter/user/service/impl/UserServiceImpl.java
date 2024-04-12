@@ -66,13 +66,15 @@ public class UserServiceImpl implements UserService {
         userInfoDao.addUserInfoById(userId);
         userInfoDao.updateUserInfo(userId,userName,null,null,null, contactWay.PHONE, contactWay.EMAIL);
         //添加用户的联系人表列
-        contactService.addContactList(userId,userName);
+        contactService.addContactList(userId);
         //用户的群组表列
         userInfoDao.addUserGroupList(userId);
         //用户的订阅频道表列
         userInfoDao.addUserChannelList(userId);
         //用户的聊天列表表列
         userInfoDao.addUserChatList(userId);
+        // 添加用户黑名单表列
+        userInfoDao.addBlackList(userId);
         return userId;
     }
 

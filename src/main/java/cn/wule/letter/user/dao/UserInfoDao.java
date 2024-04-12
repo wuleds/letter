@@ -56,4 +56,8 @@ public interface UserInfoDao {
      */
     @Insert("insert into chat_list(user_id, list, createDate, updateDate, del_flag) value (#{userId}, NULL, now(), now(), 0)")
     void addUserChatList(String userId);
+
+    /**创建黑名单*/
+    @Insert("insert into black_list(id,black_list,del_flag) values(#{userId},'[]',0)")
+    void addBlackList(String userId);
 }

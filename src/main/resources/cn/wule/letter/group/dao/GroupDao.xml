@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wule.letter.group.dao.GroupDao">
+    <update id="createGroupChat">
+        create table g_#{groupId}
+        (
+            messageId      int primary key auto_increment comment '消息ID',
+            senderId       varchar(255) not null comment '发送者ID',
+            type           varchar(16)  not null comment '消息类型',
+            text           varchar(512) comment '文本消息',
+            image          varchar(255) comment '图片消息',
+            video          varchar(255) comment '视频消息',
+            audio          varchar(255) comment '音频消息',
+            file           varchar(255) comment '文件消息',
+            replyStatus    int          not null comment '是否是回复消息, 0:否, 1:是',
+            replyMessageId int comment '回复消息的ID',
+            createDate     datetime     not null comment '创建时间',
+            updateDate     datetime     not null comment '更新时间',
+            del_flag       int          not null comment '消息状态, 0:正常, 1:删除'
+        );
+    </update>
+</mapper>

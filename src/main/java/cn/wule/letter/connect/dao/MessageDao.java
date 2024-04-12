@@ -17,6 +17,12 @@ public interface MessageDao {
     @Select("select type from chat_id_type where chat_id = #{chatId} and del_flag = 0")
     String selectTypeByChatId(String chatId);
 
-    /**存储消息*/
-    String saveMessage(String chatId,String chatType,String sender, String receiver, String type, String text, String image, String video, String audio, String file,String replyStatus,String replyMessageId);
+    /**存储私聊消息*/
+    boolean savePrivateMessage(String chatId,String sender, String receiver, String type, String text, String image, String video, String audio, String file,String replyStatus,String replyMessageId);
+
+    /**存储群聊消息*/
+    boolean saveGroupMessage(String chatId,String sender, String type, String text, String image, String video, String audio, String file,String replyStatus,String replyMessageId);
+
+    /**存储频道消息*/
+    boolean saveChannelMessage(String chatId,String sender, String type, String text, String image, String video, String audio, String file,String replyMessageId);
 }

@@ -36,8 +36,8 @@ public class ContactServiceImpl implements ContactService
     private UserInfoService userInfoService;
 
     /**为新注册的用户添加联系人表列*/
-    public void addContactList(String userId,String userName) {
-        contactDao.addContactList(userId,userName);
+    public void addContactList(String userId) {
+        contactDao.addContactList(userId);
     }
 
     /**存储添加联系人的请求*/

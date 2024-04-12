@@ -1,6 +1,7 @@
 package cn.wule.letter.connect.controller;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 10 01:40
 
+import cn.wule.letter.connect.model.UnreadMessage;
 import cn.wule.letter.connect.model.UserMessage;
 import cn.wule.letter.connect.service.WebSocketService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -15,6 +16,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,41 +56,41 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        log.info("收到消息:{}",message.getPayload());
         UserMessage userMessage;
         try{
-            userMessage= om.readValue(message.getPayload(), new TypeReference<UserMessage>() {});
+            userMessage= om.readValue(message.getPayload(), UserMessage.class);
         }catch (Exception e){
             log.error("消息解析失败");
+            log.error(e.getMessage());
             session.close();
             return;
         }
         String type = userMessage.getType();
         String Authorization = userMessage.getAuthorization();
         if(userMessage.existNull()) {
+            log.error("消息不完整");
             session.close();
             return;
         }
         String userId = webSocketService.checkToken(Authorization);
-        if(userId == null) {
+        if(userId == null || !Objects.equals(userId,userMessage.getSender())) {
             session.sendMessage(new TextMessage("验证失败"));
             session.close();
             log.error("用户验证失败");
             return;
         }
-        if(userMessage.getChatId() == null){
-            session.sendMessage(new TextMessage("聊天ID为空"));
-            session.close();
-            log.error("聊天ID为空");
-            return;
-        }
+
         switch (type) {
             case "0" -> {
+                log.info("用户 {} 发送心跳", userId);
                 if (sessionLastHeartbeat.containsKey(Authorization)) {
                     sessionLastHeartbeat.replace(Authorization, System.currentTimeMillis());
                 }else {
                     sessionLastHeartbeat.put(userId, System.currentTimeMillis());
                 }
                 session.sendMessage(new TextMessage("pong"));
+
             }
             case "1" -> {
                 //存入session连接
@@ -99,6 +101,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
             }
             case "20" -> {
                 //TODO 获取未读消息个数
+                //取出每个数据，查出每个对话的最新消息id，然后相减得出未读消息
+                List<UnreadMessage> count = om.readValue(userMessage.getText(), new TypeReference<List<UnreadMessage>>() {});
             }
             case "21" -> {
                 //TODO 获取当前对话的消息

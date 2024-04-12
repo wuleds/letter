@@ -12,6 +12,7 @@ import cn.wule.letter.util.RedisUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -57,14 +58,15 @@ public class WebSocketServiceImpl implements WebSocketService
             case "private":
                 //黑名单,是否建立了对话
                 if(chatId.equals(messageDao.selectChatIdById(userId,toId))){
-                    if(isBlackList(userId,toId) && isBlackList(toId,userId)){
-                        return false;
+                    if( !isBlack(userId,toId) && !isBlack(toId,userId)){
+                        //持久化消息
+                        messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(), String.valueOf(userMessage.getImages()),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
+                        return true;
                     }
                 }
-                break;
             case "group":
                 //TODO 黑名单，在不在群中
-                if(isBlackList(userId,chatId)){
+                if(isBlack(userId,chatId)){
                     return false;
                 }
                 break;
@@ -74,10 +76,7 @@ public class WebSocketServiceImpl implements WebSocketService
             default:
                 return false;
         }
-        //持久化消息
-        messageDao.saveMessage();
-
-        return true;
+        return false;
     }
 
     /**
@@ -105,7 +104,7 @@ public class WebSocketServiceImpl implements WebSocketService
     }
 
     /**根据id查询是否在黑名单中*/
-    private boolean isBlackList(String id, String toId){
+    private boolean isBlack(String id, String toId){
         String blackList = contactDao.getBlackList(toId);
         return blackList.contains(id);
     }

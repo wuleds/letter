@@ -3,6 +3,8 @@ package cn.wule.letter.connect.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class UserMessage
 {
@@ -22,7 +24,7 @@ public class UserMessage
     private String type;        //消息类型
     private String text;        //文本消息内容
     private String video;       //视频消息名字
-    private String[] image;     //图片消息名字
+    private List<String> images; //图片消息名字
     private String audio;       //音频消息名字
     private String file;        //文件消息名字
     private String replyStatus; //回复状态,0为一般，1为回复

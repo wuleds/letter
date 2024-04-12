@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ContactService
 {
-    void addContactList(String userId, String userName);
+    void addContactList(String userId);
     void addContactRequest(String fromUserId, String toUserid, String info);
 
     boolean updateContactList(String userId, String contactId);
