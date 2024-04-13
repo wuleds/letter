@@ -102,13 +102,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
             case "20" -> {
                 //TODO 获取未读消息个数
                 //取出每个数据，查出每个对话的最新消息id，然后相减得出未读消息
-                List<UnreadMessage> count = om.readValue(userMessage.getText(), new TypeReference<List<UnreadMessage>>() {});
+                List<UnreadMessage> unread = om.readValue(userMessage.getText(), new TypeReference<List<UnreadMessage>>() {});
+
             }
             case "21" -> {
                 //TODO 获取当前对话的消息
             }
             default -> {
-                //TODO 处理消息
+                //私聊消息，群聊消息，频道消息
                 log.info("接收到消息：{}", userMessage.getText());
                 if(webSocketService.persistence(userMessage)){
                     session.sendMessage(new TextMessage("消息发送成功"));

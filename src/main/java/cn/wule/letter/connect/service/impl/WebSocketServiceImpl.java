@@ -1,18 +1,22 @@
 package cn.wule.letter.connect.service.impl;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 11 00:29
 
+import cn.wule.letter.channel.dao.ChannelDao;
 import cn.wule.letter.connect.dao.MessageDao;
 import cn.wule.letter.connect.model.MessageVo;
+import cn.wule.letter.connect.model.UnreadMessage;
 import cn.wule.letter.connect.model.UserMessage;
 import cn.wule.letter.connect.service.WebSocketService;
 import cn.wule.letter.contact.dao.ContactDao;
+import cn.wule.letter.conversation.dao.PrivateConversationDao;
+import cn.wule.letter.group.dao.GroupDao;
 import cn.wule.letter.model.JwtUserInfo;
 import cn.wule.letter.util.JwtUtil;
 import cn.wule.letter.util.RedisUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,6 +30,12 @@ public class WebSocketServiceImpl implements WebSocketService
     private MessageDao messageDao;
     @Resource
     private ContactDao contactDao;
+    @Resource
+    private GroupDao groupDao;
+    @Resource
+    private ChannelDao channelDao;
+    @Resource
+    private PrivateConversationDao privateConversationDao;
 
     /**
      * 检查jwt真实性*/
@@ -65,42 +75,90 @@ public class WebSocketServiceImpl implements WebSocketService
                     }
                 }
             case "group":
-                //TODO 黑名单，在不在群中
-                if(isBlack(userId,chatId)){
-                    return false;
+                //黑名单， 在不在群中
+                if(!isBlack(userId,chatId)){
+                    if(groupDao.getUserPositionInGroup(chatId,userId) != null){
+                        //持久化消息
+                        messageDao.saveGroupMessage(chatId,userId,userMessage.getType(),userMessage.getText(), String.valueOf(userMessage.getImages()),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
+                        return true;
+                    }
                 }
                 break;
             case "channel":
-                //TODO 黑名单，是否关注频道
-                break;
+                //黑名单，是否关注了频道
+                if(!isBlack(userId,chatId)){
+                    if(channelDao.getAttention(userId,chatId) != null){
+                        //持久化消息
+                        messageDao.saveChannelMessage(chatId,userId,userMessage.getType(),userMessage.getText(), String.valueOf(userMessage.getImages()),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyMessageId());
+                        return true;
+                    }
+                }
             default:
-                return false;
+                break;
         }
         return false;
     }
 
-    /**
-     * 获取当前聊天的记录
-     * */
+    /**获取当前聊天的记录*/
     @Override
-    public List<MessageVo> getCurrentMessage(String userId, String chatId) {
-        //TODO 获取当前聊天的记录
-        //首先确认chatId的类型
-        //然后从数据库中获取聊天记录
-        return List.of();
+    public List<MessageVo> getCurrentMessage(String userId, String chatId, int lastMessageId) {
+        String type = messageDao.getChatIdType(chatId);
+        List<MessageVo> messages = null;
+        switch (type){
+            case "private":
+                if(privateConversationDao.getChatOnChatId(userId,chatId).equals(chatId)) {
+                    messages = messageDao.selectPrivateUnreadMessage(chatId,lastMessageId);
+                }
+                break;
+            case "group":
+                //查询用户是否处于该组
+                if(groupDao.getUserPositionInGroup(chatId,userId)  != null) {
+                    messages = messageDao.selectGroupUnreadMessage(chatId,lastMessageId);
+                }
+                break;
+            case "channel":
+                //确认用户关注了群组
+                if(channelDao.getAttention(userId,chatId) != null) {
+                    messages = messageDao.selectChannelUnreadMessage(chatId,lastMessageId);
+                }
+                break;
+            default:break;
+        }
+        return messages;
     }
 
-    /**
-     * 获取未读消息数量
-     * */
+    /** 获取未读消息数量*/
     @Override
-    public List<Integer> getUnreadMessageCount(String userId, String[] chatIds,String[] messageIds) {
-        //TODO 获取未读消息数量
+    public List<UnreadMessage> getUnreadMessageCount(String userId, List<UnreadMessage> unreadList) {
         //首先确认chatId的类型
         //然后从数据库中获取最新消息的messageId，然后与传入的messageId进行相减，获取未读消息数量
-        //返回的List中的顺序与传入的chatIds一致
-
-        return List.of();
+        List<UnreadMessage> list = new ArrayList<>();
+        unreadList.forEach(unread ->{
+            String chatId = unread.getChatId();
+            String type = messageDao.getChatIdType(chatId);
+            switch (type) {
+                case "private":
+                    if(privateConversationDao.getChatOnChatId(userId,chatId).equals(chatId)) {
+                        unread.setLastMessageId(messageDao.getPrivateLastMessageId(chatId)- unread.getLastMessageId());
+                    }
+                    break;
+                case "group":
+                    //查询用户是否处于该组
+                    if(groupDao.getUserPositionInGroup(chatId,userId)  != null) {
+                        unread.setLastMessageId(messageDao.getGroupLastMessageId(chatId)- unread.getLastMessageId());
+                    }
+                    break;
+                case "channel":
+                    //确认用户关注了群组
+                    if(channelDao.getAttention(userId,chatId) != null) {
+                        unread.setLastMessageId(messageDao.getChannelLastMessageId(chatId) - unread.getLastMessageId());
+                    }
+                    break;
+                default:break;
+            }
+            list.add(unread);
+        });
+        return list;
     }
 
     /**根据id查询是否在黑名单中*/

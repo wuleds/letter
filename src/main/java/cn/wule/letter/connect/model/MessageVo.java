@@ -3,8 +3,22 @@ package cn.wule.letter.connect.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class MessageVo
 {
     private String messageId;
+    private String senderId;
+    private String receiverId;
+    private String type;
+    private String text;
+    private List<String> image;
+    private String video;
+    private String audio;
+    private String file;
+    private String replyStatus;
+    private String replyId;
+    private String createDate;
+    private String updateDate;
 }

@@ -82,10 +82,10 @@ public interface GroupDao
     String getUserPositionInGroup(String groupId,String userId);
 
     /**更新用户加入的群组的列表*/
-    @Update("update user_join_group set group_list = #{groupList} where user_id = #{userId}")
+    @Update("update user_join_group set group_list = #{groupList} where user_id = #{userId} and del_flag = 0")
     void updateUserGroupList(String userId,String groupList);
 
-    /**获取用户加入群组列表*/
+    /**获取用户加入的群组列表*/
     @Select("select group_list from user_join_group where user_id = #{userId} and del_flag = 0")
     String getUserGroupList(String userId);
 }

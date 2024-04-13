@@ -27,6 +27,12 @@
         where ((one_id = #{oneId} and two_id = #{twoId}) or (one_id = #{twoId} and two_id = #{oneId}))
           and del_flag = 0;
     </select>
+    <select id="getChatOnChatId" resultType="java.lang.String">
+        select chat_id
+        from private_conversation
+        where chat_id = #{chatId} and (#{userId} = one_id or #{userId} = two_id)
+        and del_flag = 0;
+    </select>
 
     <insert id="insertPrivateConversation" parameterType="string">
         insert into private_conversation (chat_id, one_id, two_id,create_date, update_date,del_flag)

@@ -22,7 +22,7 @@ public interface ChannelDao
     void setChannelIdType(String channelId);
 
     /**用户关注频道*/
-    @Insert("insert into channel_user_list(channel_id, user_id, del_flag) value (#{channelId}, #{userId}, #{position}, 0)")
+    @Insert("insert into channel_user_list(channel_id, user_id, del_flag) value (#{channelId}, #{userId}, 0)")
     void addChannelUserList(String channelId,String userId,String position);
 
     /**获取频道关注的个数*/
@@ -44,4 +44,8 @@ public interface ChannelDao
     /**更新用户关注的频道列表*/
     @Update("update user_join_channel set channel_list = #{channelList} where user_id = #{userId} and del_flag = 0")
     void updateChannelList(String userId,String channelList);
+
+    /**查询用户是否关闭了该频道,返回userId*/
+    @Select("select user_id from channel_user_list where channel_id = #{channelId} and user_id = #{userId} and del_flag = 0;")
+    String getAttention(String userId,String channelId);
 }

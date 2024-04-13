@@ -2,23 +2,56 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.wule.letter.connect.dao.MessageDao">
     <insert id="savePrivateMessage">
-        <![CDATA[
-            insert into p_${chatId} (senderId, receiverId, type, text, image, video, audio, file, replyStatus, replyId, createDate, updateDate, status)
-            values (#{sender},#{receiver},#{type},#{text},#{image},#{video},#{audio},#{file},#{replyStatus},#{replyMessageId},now(),now(),0)
-        ]]>
+        insert into p_${chatId} (senderId, receiverId, type, text, image, video, audio, file, replyStatus, replyId, createDate, updateDate, status)
+        values (#{sender},#{receiver},#{type},#{text},#{image},#{video},#{audio},#{file},#{replyStatus},#{replyMessageId},now(),now(),0)
     </insert>
 
     <insert id="saveGroupMessage">
-        <![CDATA[
-            insert into g_${chatId} (senderId, type, text, image, video, audio, file, replyStatus, replyId, createDate, updateDate, status)
-            values (#{sender},#{type},#{text},#{image},#{video},#{audio},#{file},#{replyStatus},#{replyMessageId},now(),now(),0)
-        ]]>
+        insert into g_${chatId} (senderId, type, text, image, video, audio, file, replyStatus, replyId, createDate, updateDate, status)
+        values (#{sender},#{type},#{text},#{image},#{video},#{audio},#{file},#{replyStatus},#{replyMessageId},now(),now(),0)
     </insert>
 
     <insert id="saveChannelMessage">
-        <![CDATA[
-            insert into c_${chatId} (senderId,type, text, image, video, audio, file,replyStatus,replyId, createDate, updateDate, status)
-            values (#{sender},#{type},#{text},#{image},#{video},#{audio},#{file},1,#{replyMessageId},now(),now(),0)
-        ]]>
+        insert into c_${chatId} (senderId,type, text, image, video, audio, file,replyStatus,replyId, createDate, updateDate, status)
+        values (#{sender},#{type},#{text},#{image},#{video},#{audio},#{file},1,#{replyMessageId},now(),now(),0)
     </insert>
+    <select id="getPrivateLastMessageId" resultType="java.lang.Integer">
+        select messageId
+        from p_${chatId}
+        order by messageId desc
+        LIMIT 1;
+    </select>
+    <select id="getGroupLastMessageId" resultType="java.lang.Integer">
+        select messageId
+        from g_${chatId}
+        order by messageId desc
+        LIMIT 1;
+    </select>
+
+    <select id="getChannelLastMessageId" resultType="java.lang.Integer">
+        select messageId
+        from c_${chatId}
+        order by messageId desc
+        LIMIT 1;
+    </select>
+    <select id="selectPrivateUnreadMessage" resultType="cn.wule.letter.connect.model.MessageVo">
+        select messageId, senderId, receiverId, type, text, image, video, audio, file, replyStatus, replyId, createDate,updateDate
+        from p_${chatId}
+        where messageId > #{lastMessageId} and status = 0
+        order by messageId;
+    </select>
+
+    <select id="selectGroupUnreadMessage" resultType="cn.wule.letter.connect.model.MessageVo">
+        select messageId, senderId, receiverId, type, text, image, video, audio, file, replyStatus, replyId, createDate,updateDate
+        from g_${chatId}
+        where messageId > #{lastMessageId} and status = 0
+        order by messageId;
+    </select>
+
+    <select id="selectChannelUnreadMessage" resultType="cn.wule.letter.connect.model.MessageVo">
+        select messageId, senderId, receiverId, type, text, image, video, audio, file, replyStatus, replyId, createDate,updateDate
+        from c_${chatId}
+        where messageId > #{lastMessageId} and status = 0
+        order by messageId;
+    </select>
 </mapper>
