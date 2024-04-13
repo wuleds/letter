@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Conversation
 {
-    String type;   //对方的类型,可能为private,group,channel
+    String type;   //对话的类型,可能为private,group,channel
     String chatId; //对话的id
     String myId;   //当前用户的id
     String toId;   //对方的id

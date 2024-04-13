@@ -1,6 +1,8 @@
 package cn.wule.letter.connect.controller;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 10 01:40
 
+import cn.wule.letter.connect.model.MessageVo;
+import cn.wule.letter.connect.model.ServerMessage;
 import cn.wule.letter.connect.model.UnreadMessage;
 import cn.wule.letter.connect.model.UserMessage;
 import cn.wule.letter.connect.service.WebSocketService;
@@ -62,7 +64,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
             userMessage= om.readValue(message.getPayload(), UserMessage.class);
         }catch (Exception e){
             log.error("消息解析失败");
-            log.error(e.getMessage());
             session.close();
             return;
         }
@@ -75,7 +76,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
         String userId = webSocketService.checkToken(Authorization);
         if(userId == null || !Objects.equals(userId,userMessage.getSender())) {
-            session.sendMessage(new TextMessage("验证失败"));
+            session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("1").text("error").build())));
             session.close();
             log.error("用户验证失败");
             return;
@@ -84,37 +85,58 @@ public class WebSocketHandler extends TextWebSocketHandler {
         switch (type) {
             case "0" -> {
                 log.info("用户 {} 发送心跳", userId);
-                if (sessionLastHeartbeat.containsKey(Authorization)) {
-                    sessionLastHeartbeat.replace(Authorization, System.currentTimeMillis());
+                if (sessionLastHeartbeat.containsKey(userId)) {
+                    sessionLastHeartbeat.replace(userId, System.currentTimeMillis());
                 }else {
                     sessionLastHeartbeat.put(userId, System.currentTimeMillis());
                 }
-                session.sendMessage(new TextMessage("pong"));
-
+                session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("0").text("pong").build())));
             }
             case "1" -> {
                 //存入session连接
                 sessions.put(userId, session);
+                if (sessionLastHeartbeat.containsKey(userId)) {
+                    sessionLastHeartbeat.replace(userId, System.currentTimeMillis());
+                }else {
+                    sessionLastHeartbeat.put(userId, System.currentTimeMillis());
+                }
                 //存登录时间
                 userLoginTime.put(userId, System.currentTimeMillis());
                 log.info("用户 {} 连接成功", userId);
             }
             case "20" -> {
-                //TODO 获取未读消息个数
-                //取出每个数据，查出每个对话的最新消息id，然后相减得出未读消息
-                List<UnreadMessage> unread = om.readValue(userMessage.getText(), new TypeReference<List<UnreadMessage>>() {});
-
+                //获取未读消息数量
+                try {
+                    List<UnreadMessage> unread = om.readValue(userMessage.getText(), new TypeReference<List<UnreadMessage>>() {});
+                    unread = webSocketService.getUnreadMessageCount(userId, unread);
+                    String unreadJson = om.writeValueAsString(unread);
+                    session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("4").text(unreadJson).build())));
+                }catch (Exception e){
+                    log.error("未读消息解析失败");
+                    session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("3").text("获取未读消息的数量，失败").build())));
+                }
             }
             case "21" -> {
-                //TODO 获取当前对话的消息
+                //获取当前对话的消息
+                try {
+                    //获取用户获取的最后一条消息的id
+                    int lastMessageId = Integer.parseInt(userMessage.getText());
+                    String chatId = userMessage.getChatId();
+                    List<MessageVo> messages = webSocketService.getCurrentMessage(userId, chatId, lastMessageId);
+                    String messagesJson = om.writeValueAsString(messages);
+                    session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("5").text(messagesJson).chatId(chatId).chatType(webSocketService.getChatType(chatId)).build())));
+                }catch (Exception e){
+                    log.error("未读消息数解析失败");
+                    session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("3").text("获取未读消息，失败").build())));
+                }
             }
             default -> {
                 //私聊消息，群聊消息，频道消息
                 log.info("接收到消息：{}", userMessage.getText());
                 if(webSocketService.persistence(userMessage)){
-                    session.sendMessage(new TextMessage("消息发送成功"));
+                    session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("3").text("用户消息发送，成功").build())));
                 }else {
-                    session.sendMessage(new TextMessage("消息发送失败"));
+                    session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("3").text("用户消息发送，失败").build())));
                 }
             }
         }
@@ -134,6 +156,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    //检查超时心跳
     private void checkHeartbeat() {
         long now = System.currentTimeMillis();
         List<String> id = new ArrayList<>();
@@ -141,7 +164,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             if ((now - lastHeartbeatTime) > 12000) { // 超过12秒没有心跳
                 try {
                     id.add(userId);
-                    WebSocketSession session = getSessionById(userId);
+                    WebSocketSession session = sessions.get(userId);
                     if (session != null && session.isOpen()) {
                         session.close();
                     }
@@ -159,6 +182,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         });
     }
 
+    //检查过长时间的会话
     private void checkLoginTime() {
         long now = System.currentTimeMillis();
         List<String> id = new ArrayList<>();
@@ -166,7 +190,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             if ((now - loginTime) > 1800000) { // 会话时间超过 30 分钟
                 try {
                     id.add(userId);
-                    WebSocketSession session = getSessionById(userId);
+                    WebSocketSession session = sessions.get(userId);
                     if (session != null && session.isOpen()) {
                         session.close();
                     }
@@ -182,9 +206,5 @@ public class WebSocketHandler extends TextWebSocketHandler {
             sessionLastHeartbeat.remove(userId);
             userLoginTime.remove(userId);
         });
-    }
-
-    private WebSocketSession getSessionById(String userId) {
-        return sessions.get(userId);
     }
 }

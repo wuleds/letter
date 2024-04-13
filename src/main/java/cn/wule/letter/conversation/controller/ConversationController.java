@@ -1,6 +1,7 @@
 package cn.wule.letter.conversation.controller;
 //汉江师范学院 数计学院 吴乐创建于2024/3/13 0:14
 
+import cn.wule.letter.connect.service.WebSocketService;
 import cn.wule.letter.conversation.model.Conversation;
 import cn.wule.letter.conversation.service.PrivateConversationService;
 import cn.wule.letter.model.user.User;
@@ -28,6 +29,8 @@ public class ConversationController
     private PrivateConversationService privateConversationService;
     @Resource
     private JsonUtil jsonUtil;
+    @Resource
+    private WebSocketService webSocketService;
 
     /**
      * 通过此请求新建对话
@@ -58,8 +61,8 @@ public class ConversationController
             msg = "对话类型参数错误";
         }else if(!myId.equals(conversation.getMyId())) {
             msg = "账号错误";
-        }else if(false){
-            //TODO 判断黑名单
+        }else if(webSocketService.isBlack(myId,toId) || webSocketService.isBlack(toId,myId)) {
+            msg = "对方已将你拉黑或你已将对方拉黑";
         } else {
             //判断完毕，创建对话
             code = "200";

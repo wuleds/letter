@@ -161,8 +161,13 @@ public class WebSocketServiceImpl implements WebSocketService
         return list;
     }
 
+    @Override
+    public String getChatType(String chatId) {
+        return messageDao.getChatIdType(chatId);
+    }
+
     /**根据id查询是否在黑名单中*/
-    private boolean isBlack(String id, String toId){
+    public boolean isBlack(String id, String toId){
         String blackList = contactDao.getBlackList(toId);
         return blackList.contains(id);
     }

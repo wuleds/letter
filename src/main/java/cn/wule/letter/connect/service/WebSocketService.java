@@ -19,4 +19,9 @@ public interface WebSocketService {
 
     /**获取当前用户的所有未读消息的个数*/
     List<UnreadMessage> getUnreadMessageCount(String userId, List<UnreadMessage> unread);
+
+    /**获取chatId的类型*/
+    String getChatType(String chatId);
+
+    boolean isBlack(String id, String toId);
 }
