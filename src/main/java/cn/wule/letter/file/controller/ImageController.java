@@ -2,11 +2,12 @@ package cn.wule.letter.file.controller;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 06 09:10
 
 import cn.wule.letter.file.model.FileGetter;
+import cn.wule.letter.file.service.CosService;
 import cn.wule.letter.util.DigestUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,6 +29,9 @@ public class ImageController
     @Value("${file.imagePath}")
     private String IMAGE_PATH;
 
+    @Resource
+    private CosService cosService;
+
     private static final Set<String> SUPPORTED_IMAGE_MIME_TYPES = new HashSet<>();
 
     static {
@@ -35,40 +39,6 @@ public class ImageController
         SUPPORTED_IMAGE_MIME_TYPES.add("image/jpeg");
         SUPPORTED_IMAGE_MIME_TYPES.add("image/jpg");
         SUPPORTED_IMAGE_MIME_TYPES.add("image/gif");
-    }
-
-    @GetMapping("/image/get")
-    public ResponseEntity<Resource> getImage(@RequestBody FileGetter getter){
-        Path imagePath = Paths.get("images", getter.getFileName());
-        if (Files.exists(imagePath) && Files.isReadable(imagePath)) {
-            // 动态获取图片的MIME类型
-            String contentType = null;
-            try {
-                contentType = Files.probeContentType(imagePath);
-            } catch (IOException e) {
-                return ResponseEntity.badRequest().build();
-            }
-            if (contentType == null) {
-                // 设置默认值
-                contentType = "application/octet-stream";
-            }
-
-            Resource resource = null;
-            try {
-                resource = new InputStreamResource(Files.newInputStream(imagePath));
-            } catch (IOException e) {
-                return ResponseEntity.badRequest().build();
-            }
-
-            return ResponseEntity
-                    .ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + imagePath.getFileName().toString() + "\"")
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .body(resource);
-        } else {
-            // 如果找不到图片，返回404
-            return ResponseEntity.notFound().build();
-        }
     }
 
     @PostMapping("/image/upload")
@@ -101,8 +71,10 @@ public class ImageController
 
             //保存文件
             Path path = Paths.get(IMAGE_PATH + newFilename);
+
             log.info("文件保存路径: {}", path);
             Files.write(path, bytes);
+            cosService.uploadFile(path.toFile(),newFilename,"image");
 
             return ResponseEntity.ok("图片上传成功");
         } catch (IOException e) {

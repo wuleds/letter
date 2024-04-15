@@ -1,7 +1,9 @@
 package cn.wule.letter.file.controller;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 08 20:48
 
+import cn.wule.letter.file.service.CosService;
 import cn.wule.letter.util.DigestUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,8 @@ public class FileController
 {
     @Value("${file.filePath}")
     private String FILE_PATH;
+    @Resource
+    private CosService cosService;
 
     @PostMapping("/file/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
@@ -42,9 +46,12 @@ public class FileController
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
             String newFilename = sha256Hex + extension;
+
             Path path = Paths.get(FILE_PATH + newFilename);
             Files.createDirectories(path.getParent()); // 确保目录存在
             Files.write(path, fileBytes);
+
+            cosService.uploadFile(path.toFile(),newFilename,"file");
 
             log.info("文件上传成功，文件名：{}", newFilename);
 

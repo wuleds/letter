@@ -13,6 +13,8 @@ import cn.wule.letter.group.dao.GroupDao;
 import cn.wule.letter.model.JwtUserInfo;
 import cn.wule.letter.util.JwtUtil;
 import cn.wule.letter.util.RedisUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +38,8 @@ public class WebSocketServiceImpl implements WebSocketService
     private ChannelDao channelDao;
     @Resource
     private PrivateConversationDao privateConversationDao;
+    @Resource
+    private ObjectMapper om;
 
     /**
      * 检查jwt真实性*/
@@ -59,7 +63,7 @@ public class WebSocketServiceImpl implements WebSocketService
      * 持久化消息
      * */
     @Override
-    public boolean persistence(UserMessage userMessage) {
+    public boolean persistence(UserMessage userMessage) throws JsonProcessingException {
         String chatId = userMessage.getChatId();
         String chatType = messageDao.selectTypeByChatId(chatId);
         String userId = userMessage.getSender();
@@ -70,6 +74,22 @@ public class WebSocketServiceImpl implements WebSocketService
                 if(chatId.equals(messageDao.selectChatIdById(userId,toId))){
                     if( !isBlack(userId,toId) && !isBlack(toId,userId)){
                         //持久化消息
+                        switch (userMessage.getType()){
+                            case "2":
+                                //2：文本，图片，视频
+                                messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(), om.writeValueAsString(userMessage.getImages()),userMessage.getVideo(),null,null,userMessage.getReplyStatus(),userMessage.getReplyMessageId());
+                                return true;
+                            case "3":
+                                //文件
+                                messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(),null,null,null,userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
+                                return true;
+                            case "4":
+                                //音频
+                                messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),null,null,null,userMessage.getAudio(),null,userMessage.getReplyStatus(),userMessage.getReplyMessageId());
+                                return true;
+                            default:
+                                break;
+                        }
                         messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(), String.valueOf(userMessage.getImages()),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
                         return true;
                     }

@@ -112,7 +112,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     String unreadJson = om.writeValueAsString(unread);
                     session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("4").text(unreadJson).build())));
                 }catch (Exception e){
-                    log.error("未读消息解析失败");
+                    log.error("未读数量，解析失败");
                     session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("3").text("获取未读消息的数量，失败").build())));
                 }
             }
@@ -126,7 +126,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     String messagesJson = om.writeValueAsString(messages);
                     session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("5").text(messagesJson).chatId(chatId).chatType(webSocketService.getChatType(chatId)).build())));
                 }catch (Exception e){
-                    log.error("未读消息数解析失败");
+                    log.error("未读消息，解析失败");
                     session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("3").text("获取未读消息，失败").build())));
                 }
             }

@@ -1,7 +1,9 @@
 package cn.wule.letter.file.controller;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 06 13:11
 
+import cn.wule.letter.file.service.CosService;
 import cn.wule.letter.util.DigestUtil;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
@@ -26,6 +28,8 @@ public class VideoController
 {
     @Value("${file.videoPath}")
     private String VIDEO_PATH;
+    @Resource
+    private CosService cosService;
 
     private static final Set<String> SUPPORTED_VIDEO_MIME_TYPES = new HashSet<>();
 
@@ -51,8 +55,10 @@ public class VideoController
             String originalFilename = video.getOriginalFilename();
             String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             String newFilename = sha256Hex + extension;
+
             Path path = Paths.get(VIDEO_PATH + newFilename);
             Files.write(path, videoBytes);
+            cosService.uploadFile(path.toFile(),newFilename,"video");
 
             log.info("视频上传成功，文件名：{}", newFilename);
 

@@ -9,6 +9,5 @@ import lombok.Data;
 public class Contact
 {
     String userId;     //账号
-    String userName;   //用户名
     String contactList; //联系人列表
 }
