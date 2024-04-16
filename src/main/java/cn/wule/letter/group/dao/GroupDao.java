@@ -1,7 +1,10 @@
 package cn.wule.letter.group.dao;
 
 import cn.wule.letter.group.model.GroupInfo;
+import cn.wule.letter.group.model.GroupRequest;
 import org.apache.ibatis.annotations.*;
+
+import java.util.List;
 
 /**
  * 群组数据访问层
@@ -23,7 +26,7 @@ public interface GroupDao
 
     /**添加群组用户*/
     @Insert("insert into group_user_list(group_id, user_id, del_flag, user_position, date) value (#{groupId}, #{userId},0,#{position},now())")
-    void addGroupUserList(String groupId,String userId,String position);
+    void addGroupUser(String groupId,String userId,String position);
 
     /**删除群组成员*/
     @Update("update group_user_list set del_flag = 1 where group_id = #{groupId} and user_id = #{userId} and del_flag = 0")
@@ -40,10 +43,6 @@ public interface GroupDao
     /**取消管理员*/
     @Update("update group_user_list set user_position = 'member' where group_id = #{groupId} and user_id = #{userId} and del_flag = 0")
     void cancelGroupAdmin(String groupId,String userId);
-
-    /**删除群组所有成员*/
-    @Update("update group_user_list set del_flag = 1 where group_id = #{groupId}")
-    void deleteGroupAllUserList(String groupId);
 
     /**获取群组用户数*/
     @Update("select count(user_id) from group_user_list where group_id = #{groupId} and del_flag = 0")
@@ -63,15 +62,15 @@ public interface GroupDao
 
     /**获取群组成员*/
     @Update("select user_id from group_user_list where group_id = #{groupId} and del_flag = 0")
-    String getGroupUser(String groupId);
+    List<String> getGroupUser(String groupId);
 
     /**申请加入群组*/
     @Insert("insert into group_request(id,group_id, user_id, status,info) value (#{id},#{groupId}, #{userId},0, #{info})")
     void applyGroup(String id,String groupId,String userId,String info);
 
     /**获取群组申请*/
-    @Select("select id,group_id, user_id,info from group_request where group_id = #{groupId} and status = 0")
-    String getGroupRequest(String groupId);
+    @Select("select id,group_id, user_id,info,createDate from group_request where group_id = #{groupId} and status = 0")
+    List<GroupRequest> getGroupRequest(String groupId);
 
     /**处理群组申请*/
     @Update("update group_request set status = #{status} where id = #{id} and group_id = #{groupId} and status = 0")
@@ -88,4 +87,8 @@ public interface GroupDao
     /**获取用户加入的群组列表*/
     @Select("select group_list from user_join_group where user_id = #{userId} and del_flag = 0")
     String getUserGroupList(String userId);
+
+    /**根据群组id获取群组名字*/
+    @Select("select group_name from chat_group where group_id = #{groupId} and del_flag = 0")
+    String getGroupName(String groupId);
 }

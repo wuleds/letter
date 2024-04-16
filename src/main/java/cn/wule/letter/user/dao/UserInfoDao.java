@@ -12,10 +12,16 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface UserInfoDao {
     /**
-     * 根据用户id获取用户信息
+     * 根据用户id获取用户所有信息
      */
     @Select("select * from user_info where user_id = #{userId} and del_flag = 1")
     UserInfo getUserInfoById(String userId);
+
+    /**
+     * 根据用户id获取用户部分信息
+     */
+    @Select("select user_id,user_name from user_info where user_id = #{userId} and del_flag = 1")
+    UserInfo getALitterUserInfoById(String userId);
 
     /**
      * 添加用户信息

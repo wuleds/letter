@@ -5,27 +5,23 @@ import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import jakarta.annotation.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 
 @Service
+@Slf4j
 public class CosService
 {
-    private static final Logger log = LoggerFactory.getLogger(CosService.class);
     @Resource
     private COSClient cosClient;
     @Value("${cos.bucketName}")
     private String bucketName;
 
     public void uploadFile(File file, String name,String path){
-        String key = path + "/" + name;
-        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, file);
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, name, file);
         PutObjectResult putObjectResult = cosClient.putObject(putObjectRequest);
 
         log.info("上传文件结果：{}", putObjectResult);
