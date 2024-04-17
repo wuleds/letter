@@ -58,7 +58,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        log.info("收到消息:{}",message.getPayload());
         UserMessage userMessage;
         try{
             userMessage= om.readValue(message.getPayload(), UserMessage.class);
@@ -84,7 +83,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         switch (type) {
             case "0" -> {
-                log.info("用户 {} 发送心跳", userId);
                 if (sessionLastHeartbeat.containsKey(userId)) {
                     sessionLastHeartbeat.replace(userId, System.currentTimeMillis());
                 }else {
@@ -132,7 +130,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
             }
             default -> {
                 //私聊消息，群聊消息，频道消息
-                log.info("接收到消息：{}", userMessage.getText());
                 if(webSocketService.persistence(userMessage)){
                     session.sendMessage(new TextMessage(om.writeValueAsString(ServerMessage.builder().type("3").text("用户消息发送，成功").build())));
                 }else {

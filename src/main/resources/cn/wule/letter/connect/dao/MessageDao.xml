@@ -35,7 +35,7 @@
         LIMIT 1;
     </select>
     <select id="selectPrivateUnreadMessage" resultType="cn.wule.letter.connect.model.MessageVo">
-        select messageId, senderId, receiverId, type, text, image, video, audio, file, replyStatus, replyId, createDate,updateDate
+        select messageId, senderId, receiverId, type, text, image, video, audio, file, replyStatus, replyId, createDate, updateDate
         from p_${chatId}
         where messageId > #{lastMessageId} and status = 0
         order by messageId;

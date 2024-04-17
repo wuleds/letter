@@ -16,12 +16,14 @@ import cn.wule.letter.util.RedisUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class WebSocketServiceImpl implements WebSocketService
 {
     @Resource
@@ -68,6 +70,8 @@ public class WebSocketServiceImpl implements WebSocketService
         String chatType = messageDao.selectTypeByChatId(chatId);
         String userId = userMessage.getSender();
         String toId = userMessage.getReceiver();
+        String image = userMessage.getImages();
+
         switch (chatType){
             case "private":
                 //黑名单,是否建立了对话
@@ -77,10 +81,10 @@ public class WebSocketServiceImpl implements WebSocketService
                         switch (userMessage.getType()){
                             case "2":
                                 //2：文本，图片，视频
-                                messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(), om.writeValueAsString(userMessage.getImages()),userMessage.getVideo(),null,null,userMessage.getReplyStatus(),userMessage.getReplyMessageId());
+                                messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(), image,userMessage.getVideo(),null,null,userMessage.getReplyStatus(),userMessage.getReplyMessageId());
                                 return true;
                             case "3":
-                                //文件
+                                //文件,文本
                                 messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(),null,null,null,userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
                                 return true;
                             case "4":
@@ -90,7 +94,7 @@ public class WebSocketServiceImpl implements WebSocketService
                             default:
                                 break;
                         }
-                        messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(), String.valueOf(userMessage.getImages()),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
+                        messageDao.savePrivateMessage(chatId,userId,toId,userMessage.getType(),userMessage.getText(), userMessage.getImages(),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
                         return true;
                     }
                 }
@@ -99,7 +103,7 @@ public class WebSocketServiceImpl implements WebSocketService
                 if(!isBlack(userId,chatId)){
                     if(groupDao.getUserPositionInGroup(chatId,userId) != null){
                         //持久化消息
-                        messageDao.saveGroupMessage(chatId,userId,userMessage.getType(),userMessage.getText(), String.valueOf(userMessage.getImages()),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
+                        messageDao.saveGroupMessage(chatId,userId,userMessage.getType(),userMessage.getText(), userMessage.getImages(),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyStatus(),userMessage.getReplyMessageId());
                         return true;
                     }
                 }
@@ -109,7 +113,7 @@ public class WebSocketServiceImpl implements WebSocketService
                 if(!isBlack(userId,chatId)){
                     if(channelDao.getAttention(userId,chatId) != null){
                         //持久化消息
-                        messageDao.saveChannelMessage(chatId,userId,userMessage.getType(),userMessage.getText(), String.valueOf(userMessage.getImages()),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyMessageId());
+                        messageDao.saveChannelMessage(chatId,userId,userMessage.getType(),userMessage.getText(), userMessage.getImages(),userMessage.getVideo(),userMessage.getAudio(),userMessage.getFile(),userMessage.getReplyMessageId());
                         return true;
                     }
                 }

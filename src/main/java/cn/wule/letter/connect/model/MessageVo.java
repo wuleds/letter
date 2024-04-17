@@ -13,7 +13,7 @@ public class MessageVo
     private String receiverId;
     private String type;
     private String text;
-    private List<String> image;
+    private String image;
     private String video;
     private String audio;
     private String file;
