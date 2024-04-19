@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class MessageVo
 {
-    private String messageId;
+    private int messageId;
     private String senderId;
     private String receiverId;
     private String type;

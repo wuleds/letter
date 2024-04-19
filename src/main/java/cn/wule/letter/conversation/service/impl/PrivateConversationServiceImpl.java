@@ -5,6 +5,7 @@ import cn.wule.letter.conversation.dao.ChatListDao;
 import cn.wule.letter.conversation.dao.PrivateConversationDao;
 import cn.wule.letter.conversation.model.Conversation;
 import cn.wule.letter.conversation.service.PrivateConversationService;
+import cn.wule.letter.group.dao.GroupDao;
 import cn.wule.letter.util.UUIDUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -29,6 +30,8 @@ public class PrivateConversationServiceImpl implements PrivateConversationServic
     private ChatListDao chatListDao;
     @Resource
     private ObjectMapper om;
+    @Resource
+    private GroupDao groupDao;
 
     /**
      * 创建对话
@@ -80,13 +83,27 @@ public class PrivateConversationServiceImpl implements PrivateConversationServic
                 }
                 break;
             case "group":
-                //TODO 检查群组是否存在
-                chatId = toId;
-                if(true){
-                    throw new NotFoundException("群组不存在");
-                };
+                //检查群组是否存在
                 //检查是否是群组成员
                 //将群组号存进用户的对话列表
+                chatId = toId;
+                if(groupDao.getGroupNameById(chatId) == null){
+                    throw new NotFoundException("群组不存在");
+                };
+                if(groupDao.getUserPositionInGroup(chatId,myId) == null){
+                    throw new NotFoundException("不是群组成员");
+                }
+                String setJson = chatListDao.selectChatList(myId);
+                HashSet<String> mySet;
+                try {
+                    mySet = om.readValue(setJson, new TypeReference<HashSet<String>>() {});
+                } catch (JsonProcessingException | IllegalArgumentException e ) {
+                    mySet = new HashSet<String>();
+                }
+                //将chatId存进双方的对话列表，然后存进数据库
+                if(mySet.add(chatId)) {
+                    chatListDao.updateChatList(myId, om.writeValueAsString(mySet));
+                }
                 break;
             case "channel":
                 //TODO 检查频道是否存在

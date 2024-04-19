@@ -12,5 +12,5 @@ public class GroupRequest
     private String userId;      //申请者ID
     private String info;        //申请信息
     private String status;      //申请状态
-    private String createData; //申请时间
+    private String createDate; //申请时间
 }

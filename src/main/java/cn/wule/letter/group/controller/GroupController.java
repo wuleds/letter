@@ -155,7 +155,7 @@ public class GroupController {
                 msg = "获取群组信息成功";
             } else {
                 code = "500";
-                msg = "获取群组信息失败";
+                msg = "没有群组消息";
             }
         }
         return jsonUtil.createResponseModelJsonByString(code, msg, data);

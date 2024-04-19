@@ -46,8 +46,11 @@ public class GroupServiceImpl implements GroupService {
             groupDao.addGroupUser(groupId, creatorId, "creator");
             //获取用户加入的群组列表的Set
             Set<String> groupSet = updateUserJoinGroup(creatorId);
+            groupSet.add(groupId);
             //更新用户加入的群组
             groupDao.updateUserGroupList(creatorId, om.writeValueAsString(groupSet));
+            //创建群组黑名单
+            groupDao.createBlackList(groupId);
             return true;
         } catch (Exception e) {
             log.error("创建群组失败", e);
@@ -147,8 +150,7 @@ public class GroupServiceImpl implements GroupService {
             groupSet = new HashSet<String>();
         } else {
             //转为set
-            groupSet = om.readValue(groupListJson, new TypeReference<Set<String>>() {
-            });
+            groupSet = om.readValue(groupListJson, new TypeReference<Set<String>>() {});
         }
         return groupSet;
     }
@@ -301,7 +303,7 @@ public class GroupServiceImpl implements GroupService {
             //获取用户加入的群组列表的json
             String groupListJson = groupDao.getUserGroupList(userId);
             //转为Set
-            if (groupListJson == null) {
+            if (groupListJson == null || groupListJson.equals("[]")) {
                 log.info("用户加入的群组列表为空");
                 return null;
             }
@@ -309,7 +311,7 @@ public class GroupServiceImpl implements GroupService {
             List<GroupInfo> groupInfos = new ArrayList<GroupInfo>();
             for (String groupId : groupSet) {
                 //获取群组信息
-                GroupInfo groupInfo = groupDao.getGroupInfo(groupId);
+                GroupInfo groupInfo = groupDao.getGroupInfoById(groupId);
                 groupInfo.setUserCount(groupDao.getGroupUserCount(groupId));
                 groupInfos.add(groupInfo);
             }

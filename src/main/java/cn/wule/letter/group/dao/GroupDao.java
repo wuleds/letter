@@ -45,23 +45,32 @@ public interface GroupDao
     void cancelGroupAdmin(String groupId,String userId);
 
     /**获取群组用户数*/
-    @Update("select count(user_id) from group_user_list where group_id = #{groupId} and del_flag = 0")
+    @Select("select count(user_id) from group_user_list where group_id = #{groupId} and del_flag = 0")
     int getGroupUserCount(String groupId);
 
     /**获取群组信息*/
-    @Update("select group_id, group_name, group_info, creator_id, manager_id_list, group_photo, create_date from chat_group where group_id = #{groupId} and del_flag = 0")
-    GroupInfo getGroupInfo(String groupId);
+    @Select("select group_id, group_name, group_info, creator_id, manager_id_list, group_photo, create_date " +
+            "from chat_group " +
+            "where (group_id = #{groupIdOrName} or group_name = #{groupIdOrName})" +
+            "and del_flag = 0")
+    List<GroupInfo> getGroupInfo(String groupIdOrName);
+
+    /**根据群组id获取群组信息*/
+    @Select("select * " +
+            "from chat_group " +
+            "where group_id = #{groupId} and del_flag = 0")
+    GroupInfo  getGroupInfoById(String groupId);
 
     /**获取群组黑名单*/
-    @Update("select black_list from black_list where id = #{groupId} and del_flag = 0")
+    @Select("select black_list from black_list where id = #{groupId} and del_flag = 0")
     String getBlackList(String groupId);
 
     /**获取群组管理员*/
-    @Update("select user_id from group_user_list where group_id = #{groupId} and user_position = 'admin' and del_flag = 0")
+    @Select("select user_id from group_user_list where group_id = #{groupId} and user_position = 'admin' and del_flag = 0")
     String getGroupAdmin(String groupId);
 
     /**获取群组成员*/
-    @Update("select user_id from group_user_list where group_id = #{groupId} and del_flag = 0")
+    @Select("select user_id from group_user_list where group_id = #{groupId} and del_flag = 0")
     List<String> getGroupUser(String groupId);
 
     /**申请加入群组*/
@@ -69,7 +78,7 @@ public interface GroupDao
     void applyGroup(String id,String groupId,String userId,String info);
 
     /**获取群组申请*/
-    @Select("select id,group_id, user_id,info,createDate from group_request where group_id = #{groupId} and status = 0")
+    @Select("select id,group_id, user_id,info,created_date from group_request where group_id = #{groupId} and status = 0")
     List<GroupRequest> getGroupRequest(String groupId);
 
     /**处理群组申请*/
@@ -88,7 +97,10 @@ public interface GroupDao
     @Select("select group_list from user_join_group where user_id = #{userId} and del_flag = 0")
     String getUserGroupList(String userId);
 
+    @Insert("insert into black_list(id,black_list,del_flag) value (#{groupId},'[]',0)")
+    void createBlackList(String groupId);
+
     /**根据群组id获取群组名字*/
     @Select("select group_name from chat_group where group_id = #{groupId} and del_flag = 0")
-    String getGroupName(String groupId);
+    String getGroupNameById(String groupId);
 }

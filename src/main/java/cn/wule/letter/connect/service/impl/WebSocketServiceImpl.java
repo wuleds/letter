@@ -193,6 +193,9 @@ public class WebSocketServiceImpl implements WebSocketService
     /**根据id查询是否在黑名单中*/
     public boolean isBlack(String id, String toId){
         String blackList = contactDao.getBlackList(toId);
+        if(blackList == null){
+            return false;
+        }
         return blackList.contains(id);
     }
 }
