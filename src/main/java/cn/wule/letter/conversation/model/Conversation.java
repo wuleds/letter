@@ -16,4 +16,6 @@ public class Conversation
     String chatId; //对话的id
     String myId;   //当前用户的id
     String toId;   //对方的id
+    String name;   //对方的名字
+    String photo;  //对方的头像
 }

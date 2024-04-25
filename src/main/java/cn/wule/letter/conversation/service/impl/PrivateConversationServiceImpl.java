@@ -6,6 +6,7 @@ import cn.wule.letter.conversation.dao.PrivateConversationDao;
 import cn.wule.letter.conversation.model.Conversation;
 import cn.wule.letter.conversation.service.PrivateConversationService;
 import cn.wule.letter.group.dao.GroupDao;
+import cn.wule.letter.user.dao.UserInfoDao;
 import cn.wule.letter.util.UUIDUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -32,6 +33,8 @@ public class PrivateConversationServiceImpl implements PrivateConversationServic
     private ObjectMapper om;
     @Resource
     private GroupDao groupDao;
+    @Resource
+    private UserInfoDao userInfoDao;
 
     /**
      * 创建对话
@@ -133,6 +136,23 @@ public class PrivateConversationServiceImpl implements PrivateConversationServic
             String type = chatListDao.selectTypeByChatId(chatId);
             //如果是私聊，则获取对方id，否则直接用chatId。
             String toId = type.equals("private")?chatListDao.getPrivateChat(chatId,userId):chatId;
+            switch (type) {
+                case "private":
+                    //获取对方的信息
+                    conversation.setPhoto(userInfoDao.getUserInfoPhoto(toId));
+                    conversation.setName(userInfoDao.getUserInfoById(toId).getUserName());
+                    break;
+                case "group":
+                    //获取群组的信息
+                    conversation.setName(groupDao.getGroupNameById(toId));
+                    conversation.setPhoto(groupDao.getGroupPhoto(toId));
+                    break;
+                case "channel":
+                    //获取频道的信息
+                    conversation.setName(groupDao.getChannelName(toId));
+                    conversation.setPhoto(groupDao.getChannelPhoto(toId));
+                    break;
+            }
             conversation.setChatId(chatId);
             conversation.setType(type);
             conversation.setMyId(userId);

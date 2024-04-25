@@ -80,7 +80,7 @@ public class ConversationController
         return jsonUtil.createResponseModelJsonByString(code,msg, data);
     }
 
-    @PostMapping("list")
+    @PostMapping("/list")
     public String getChatList(@RequestBody User user){
         String code = "400";
         String msg;
@@ -100,7 +100,6 @@ public class ConversationController
             }
             code = "200";
             msg = "获取对话列表成功";
-            log.info("获取对话列表，id：{}，list：{}",myId,conversations);
             return jsonUtil.createResponseModelJsonByString(code,msg,conversations);
         }
         return jsonUtil.createResponseModelJsonByString(code,msg,null);

@@ -103,4 +103,24 @@ public interface GroupDao
     /**根据群组id获取群组名字*/
     @Select("select group_name from chat_group where group_id = #{groupId} and del_flag = 0")
     String getGroupNameById(String groupId);
+
+    /**获取用户头像地址*/
+    @Select("select user_photo from user_info where user_id = #{userId} and del_flag = 1;")
+    String getUserPhoto(String userId);
+
+    /**获取群组头像*/
+    @Select("select group_photo from chat_group where group_id = #{groupId} and del_flag = 0;")
+    String getGroupPhoto(String groupId);
+
+    /**获取频道头像*/
+    @Select("select channel_photo from channel where channel_id = #{channelId} and del_flag = 0;")
+    String getChannelPhoto(String channelId);
+
+    /**获取群组名*/
+    @Select("select group_name from chat_group where group_id = #{groupId} and del_flag = 0;")
+    String getGroupName(String groupId);
+
+    /**获取频道名*/
+    @Select("select channel_name from channel where channel_id = #{channelId} and del_flag = 0;")
+    String getChannelName(String channelId);
 }
