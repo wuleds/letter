@@ -33,29 +33,28 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final static ConcurrentHashMap<String, Long> sessionLastHeartbeat = new ConcurrentHashMap<>();
     //存储每个用户的登录时间，key为userId，value为时间戳
     private final static ConcurrentHashMap<String, Long> userLoginTime = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
     private static WebSocketService webSocketService;
     @Autowired
     public void setWebSocketService(WebSocketService webSocketService) {
         WebSocketHandler.webSocketService = webSocketService;
     }
-
     private final ObjectMapper om = new ObjectMapper();
-
 
     public WebSocketHandler() {
         //每1秒检查一次所有会话的最后心跳时间
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this::checkHeartbeat, 1, 1, TimeUnit.SECONDS);
-        //每 60秒检查一次所有会话的持续时间
+        //每60秒检查一次所有会话的持续时间
         scheduler.scheduleAtFixedRate(this::checkLoginTime, 1, 60, TimeUnit.SECONDS);
     }
 
+    //建立连接
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("连接建立");
     }
 
+    //处理收到的消息
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         UserMessage userMessage;
@@ -139,18 +138,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    //连接关闭
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
         // 当连接关闭时，移除对应的会话心跳记录
         log.info("连接关闭");
-    }
-
-    public void sendMessageToUser(WebSocketSession session, String message) throws Exception {
-        //TODO 发送消息给指定用户
-        if (session != null && session.isOpen()) {
-            session.sendMessage(new TextMessage(message));
-        }
     }
 
     //检查超时心跳

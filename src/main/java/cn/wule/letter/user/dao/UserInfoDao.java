@@ -33,10 +33,10 @@ public interface UserInfoDao {
     /**
      * 更新用户信息
      */
-    @Update("update user_info set user_sex = #{userSex},user_birthday = #{userBirthday},user_name = #{userName}," +
-            "user_address = #{userAddress},user_phone = #{userPhone}," +
-            "user_email = #{userEmail} where user_id = #{userId}")
-    void updateUserInfo(String userId,String userName,String userSex,String userBirthday,String userAddress,String userPhone,String userEmail);
+    @Update("update user_info set user_sex = #{userSex},user_photo = #{userPhoto},user_name = #{userName}," +
+            "user_talk = #{userTalk}" +
+            " where user_id = #{userId}")
+    void updateUserInfo(String userId,String userName,String userSex,String userPhoto,String userTalk);
 
     /**删除用户信息*/
     @Update("update user_info set del_flag = 0 where user_id = #{userId}")

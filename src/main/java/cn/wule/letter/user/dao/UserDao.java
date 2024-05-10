@@ -49,5 +49,5 @@ public interface UserDao
      * 修改用户名
      */
     @Update("update user set user_name = #{userName} where user_id = #{userId} and del_flag = '1' ")
-    User updateUserName(String userId,String userName);
+    void updateUserName(String userId,String userName);
 }

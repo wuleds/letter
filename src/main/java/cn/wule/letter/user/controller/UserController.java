@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.KeyGenerator;
@@ -87,9 +88,9 @@ public class UserController
                         .host(request.getRemoteHost())
                         .code("200")
                         .msg("登录成功").build();
-                //可能存在老记录，要删除
+                //删除旧缓存
                 redisUtil.deleteJwtRedisCacheByUserId(userId);
-                //添加redis记录
+                //添加redis缓存
                 redisUtil.addJitRedisCacheOnMouth(jwt);
                 //记录日志
                 loginLogService.insertLog(loginLog);
@@ -126,11 +127,10 @@ public class UserController
             code = "400";
             msg = "两次输入的密码不一致";
         }else {
-            //各种信息全部都有，接下来进行验证码的验证
-           // if (authCodeService.checkAuthCode(signinVo.getMethod(), signinVo.getS(), signinVo.getCode())) {
-                //验证码正确，销毁验证码，防止二次利用，然后进行注册
-                //ContactWay contactWay = new ContactWayIm(signinVo.getS(),signinVo.getMethod());
-                ContactWay contactWay = new ContactWayIm("wule_eng@outlook.com",signinVo.getMethod());
+            //信息检查完毕，接下来验证验证码
+            if (authCodeService.checkAuthCode(signinVo.getMethod(), signinVo.getS(), signinVo.getCode())) {
+                //验证码正确，销毁验证码，然后进行注册
+                ContactWay contactWay = new ContactWayIm(signinVo.getS(),signinVo.getMethod());
                 String userId = userService.addUser(signinVo.getUserName(), signinVo.getPassword(), contactWay);
                 if (userId != null) {
                     code = "200";
@@ -138,23 +138,17 @@ public class UserController
                     //注册成功后返回用户id
                     data = userId;
                     //记录日志
-                    SigninLog signinLog = SigninLog.builder()
-                            .userId(userId)
-                            .userName(signinVo.getUserName())
-                            .ip(request.getRemoteAddr())
-                            .host(request.getRemoteHost())
-                            .code("200")
-                            .msg("注册成功").build();
+                    SigninLog signinLog = SigninLog.builder().userId(userId).userName(signinVo.getUserName()).ip(request.getRemoteAddr()).host(request.getRemoteHost()).code("200").msg("注册成功").build();
                     signinLogService.insertLog(signinLog);
                     log.info("用户注册，用户名：{}，账号：{}，时间：{}",signinVo.getUserName(),userId, NowDate.getNowDate());
                 }else {
                     code = "500";
                     msg = "注册失败";
                 }
-          /*  }else {
+            }else {
                 code = "400";
                 msg = "验证码错误";
-            }*/
+            }
         }
         return jsonUtil.createResponseModelJsonByString(code, msg, data);
     }
@@ -196,29 +190,21 @@ public class UserController
         if(userEmail == null && userPhone == null){
             return jsonUtil.createResponseModelJsonByString("400","该账号未绑定联系方式",null);
         }
-        //确定用户的联系方式与预先设置的一样。
-        switch (method){
-            case "phone":
-                if(!Objects.equals(userPhone, contact)){
-                    return jsonUtil.createResponseModelJsonByString("400","手机号错误",null);
-                }
-                break;
-            case "email":
-                if(!Objects.equals(userEmail, contact)){
-                    return jsonUtil.createResponseModelJsonByString("400","邮箱错误",null);
-                }
-                break;
-            default:
-                return jsonUtil.createResponseModelJsonByString("400","参数错误",null);
+        //检查用户的联系方式
+        if (method.equals("email")) {
+            if (!Objects.equals(userEmail, contact)) {
+                return jsonUtil.createResponseModelJsonByString("400", "邮箱错误", null);
+            }
+        } else {
+            return jsonUtil.createResponseModelJsonByString("400", "参数错误", null);
         }
-
         //移除jwt
         redisUtil.deleteJwtRedisCacheByUserId(userId);
         //生成长链接,并存入redis
         String longUrl = randomString.getLongLink();
         redisUtil.addLongUrlCache(userId,longUrl);
         //向联系方式发送长链接
-        longUrl = "http://" + request.getServerName() + "/user/reset/" + longUrl;
+        longUrl = "https://wules.space/user/reset/" + longUrl;
         authCodeService.sendLongUrl(method,contact,longUrl);
         log.info("用户忘记密码，账号：{}，时间：{}",userId,NowDate.getNowDate());
         return jsonUtil.createResponseModelJsonByString("200","发送重置密码链接成功",null);
@@ -246,7 +232,7 @@ public class UserController
         }
         //修改密码
         if(userService.updatePassword(userId,password)) {
-            //移除长链接
+            //移除长链接缓存
             redisUtil.deleteLongUrlCache(longUrl);
             log.info("用户重置密码，账号：{}，时间：{}",userId,NowDate.getNowDate());
             return jsonUtil.createResponseModelJsonByString("200", "修改密码成功", null);
@@ -326,11 +312,19 @@ public class UserController
         return jsonUtil.createResponseModelJsonByString(code,msg,data);
     }
 
-    @PostMapping("/generateKey")
-    public String generateKey() throws NoSuchAlgorithmException {
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        keyGen.init(256); // 可选的密钥长度
-        SecretKey secretKey = keyGen.generateKey();
-        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    @PostMapping("/update")
+    public String updateUserInfo(@RequestBody UserInfo userInfo){
+        String code;
+        String msg;
+        String myId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        if(userInfo == null) {
+            code = "400";
+            msg = "对象为空";
+        }else {
+            userInfoService.updateUserInfo(myId,userInfo.getUserName(),userInfo.getUserSex(),userInfo.getUserPhoto(),userInfo.getUserTalk());
+            code = "200";
+            msg = "修改成功";
+        }
+        return jsonUtil.createResponseModelJsonByString(code,msg,null);
     }
 }

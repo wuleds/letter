@@ -54,26 +54,27 @@ public class UserServiceImpl implements UserService {
             //如果创建失败则重新创建
              newId = UserUtil.createUserId();
              if(i++ > 10){
+                 //创建失败，终止流程
                  return null;
              }
         }while (newId == -1);
         //密码加密
         String encodePassword = BCryptPwdUtil.encode(slatingPassword(userPassword));
         String userId = String.valueOf(newId);
-        //添加到用户表列
+        //添加用户表
         userDao.addNormalUser(userId,userName,encodePassword, NowDate.getNowDate());
-        //添加用户信息表列
+        //添加用户信息
         userInfoDao.addUserInfoById(userId);
-        userInfoDao.updateUserInfo(userId,userName,null,null,null, contactWay.PHONE, contactWay.EMAIL);
-        //添加用户的联系人表列
+        userInfoDao.updateUserInfo(userId,userName,null,null,null);
+        //添加用户的联系人列表
         contactService.addContactList(userId);
-        //用户的群组表列
+        //用户的群组列表
         userInfoDao.addUserGroupList(userId);
-        //用户的订阅频道表列
+        //用户的订阅频道列表
         userInfoDao.addUserChannelList(userId);
-        //用户的聊天列表表列
+        //用户的聊天列表
         userInfoDao.addUserChatList(userId);
-        // 添加用户黑名单表列
+        //添加用户黑名单列表
         userInfoDao.addBlackList(userId);
         return userId;
     }

@@ -30,11 +30,12 @@ public class JwtUtil
     @Value("${jwt.issuer}")
     private String issuer;
 
-    /**创建一个有效期为一个月的jwt*/
+    /**生成一个有效期为一个月的jwt*/
     public String createJwtOnMouth(JwtUserInfo jwtUserInfo){
         long expireTime = 1000L * 60L * 60L * 24L * 30L;
         return createJwt(jwtUserInfo,new Date(),new Date(System.currentTimeMillis() + expireTime));
     }
+
     /**生成JWT*/
     public String createJwt(JwtUserInfo jwtUserInfo, Date issueDate, Date expireDate){
         Map<String,Object> headerClaims = new HashMap<>();

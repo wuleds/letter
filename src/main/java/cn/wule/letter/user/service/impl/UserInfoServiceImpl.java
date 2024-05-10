@@ -30,8 +30,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     /**信息更新*/
     @Override
-    public void updateUserInfo(String userId, String userName,String userSex, String userBirthday, String userAddress, String userPhone, String userEmail) {
-        userInfoDao.updateUserInfo(userId, userName,userSex, userBirthday, userAddress, userPhone, userEmail);
+    public void updateUserInfo(String userId, String userName, String userSex,String userPhoto ,String userTalk) {
+        userInfoDao.updateUserInfo(userId, userName,userSex, userPhoto,userTalk);
         //当初设计数据库的时候user表和user_info表没有设计好，都有user_name字段，所以这里只能这样写了，改不动了。
         userDao.updateUserName(userId,userName);
     }
