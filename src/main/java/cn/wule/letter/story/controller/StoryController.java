@@ -2,16 +2,14 @@ package cn.wule.letter.story.controller;
 //汉江师范学院 数计学院 吴乐创建于2024 4月 16 21:05
 
 import cn.wule.letter.model.user.User;
+import cn.wule.letter.story.model.Comment;
 import cn.wule.letter.story.model.Story;
 import cn.wule.letter.story.service.StoryService;
 import cn.wule.letter.util.JsonUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/story")
@@ -36,13 +34,13 @@ public class StoryController
         if(story.getSenderId() == null || story.getSenderId().isEmpty()){
             return jsonUtil.createResponseModelJsonByString(code,msg,null);
         }
-        if(story.getText() == null && story.getImage() == null && story.getVideo() == null){
+        if(story.getText().isEmpty() && story.getImage().isEmpty() && story.getVideo().isEmpty()){
             return jsonUtil.createResponseModelJsonByString(code,msg,null);
         }
-        if(story.getText() != null && story.getText().length() > 200){
+        if(story.getText().length() > 200){
             return jsonUtil.createResponseModelJsonByString(code,"文字内容过长",null);
         }
-        storyService.createStory(story.getSenderId(),story.getText(),story.getImage(),story.getVideo());
+        storyService.createStory(myId,story.getText(),story.getImage(),story.getVideo());
         return jsonUtil.createResponseModelJsonByString("200","发布成功",null);
     }
 
@@ -62,7 +60,7 @@ public class StoryController
     }
 
     /**获取动态*/
-    @PostMapping("/get")
+    @PostMapping("/get/me")
     public String getStoryInfo()
     {
         String myId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
@@ -70,47 +68,64 @@ public class StoryController
         return jsonUtil.createResponseModelJsonByString("200","获取成功",data);
     }
 
-    /**获取用户动态列表*/
-    @PostMapping("/list")
-    public void getStoryList()
+    /**获取好友动态*/
+    @PostMapping("/get/{friendId}")
+    public String getFriendStory(@PathVariable String friendId)
     {
-        log.info("获取故事列表");
+        String myId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        if(friendId == null || friendId.isEmpty()){
+            return jsonUtil.createResponseModelJsonByString("400","获取失败",null);
+        }
+        String data = storyService.getFriendStoryById(friendId,myId);
+        return jsonUtil.createResponseModelJsonByString("200","获取成功",data);
     }
 
-
     /**获取故事评论*/
-    @RequestMapping("/comment/get")
-    public String getStoryComment(@RequestBody Story story)
+    @PostMapping("/comment/get/{storyId}")
+    public String getStoryComment(@PathVariable String storyId)
     {
-        log.info("获取故事评论");
-        return null;
+        if(storyId == null || storyId.isEmpty()){
+            return jsonUtil.createResponseModelJsonByString("400","获取失败",null);
+        }
+        String data = storyService.getCommentListById(storyId);
+        return jsonUtil.createResponseModelJsonByString("200","获取成功",data);
     }
 
     /**评论动态*/
-    @RequestMapping("/comment/add")
-    public void commentStory()
+    @PostMapping("/comment/add")
+    public String  commentStory(@RequestBody Comment comment)
     {
-        log.info("评论故事");
-    }
-
-    /**删除评论*/
-    @RequestMapping("/comment/delete")
-    public void deleteComment()
-    {
-        log.info("删除评论");
+        String myId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        if(comment == null){
+            return jsonUtil.createResponseModelJsonByString("400","获取失败",null);
+        }
+        if(comment.getStoryId() == null || comment.getStoryId().isEmpty()){
+            return jsonUtil.createResponseModelJsonByString("400","获取失败",null);
+        }
+        if(comment.getText() == null || comment.getText().isEmpty()){
+            return jsonUtil.createResponseModelJsonByString("400","获取失败",null);
+        }
+        storyService.createComment(comment.getStoryId(),myId,comment.getText());
+        return jsonUtil.createResponseModelJsonByString("200","评论成功",null);
     }
 
     /**喜爱动态*/
-    @RequestMapping("/like")
-    public void likeStory()
+    @PostMapping("/like/{storyId}")
+    public void likeStory(@PathVariable String storyId)
     {
-        log.info("点赞故事");
+        if(storyId == null || storyId.isEmpty()){
+            return;
+        }
+        storyService.likeStory(storyId,((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId());
     }
 
     /**取消喜爱动态*/
-    @RequestMapping("/unlike")
-    public void unlikeStory()
+    @PostMapping("/like/off/{storyId}")
+    public void unlikeStory(@PathVariable String storyId)
     {
-        log.info("取消点赞故事");
+        if(storyId == null || storyId.isEmpty()){
+            return;
+        }
+        storyService.cancelLikeStory(storyId,((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId());
     }
 }

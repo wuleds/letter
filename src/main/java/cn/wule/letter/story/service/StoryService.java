@@ -19,4 +19,27 @@ public interface StoryService
      */
     String getStoryListById(String userId);
 
+    /**
+     * 获取好友动态列表
+     */
+    String getFriendStoryById(String friendId,String userId);
+
+    /**
+     * 获取动态评论
+     */
+    String getCommentListById(String storyId);
+
+    /**
+     * 发表评论
+     */
+    void createComment(String storyId,String senderId,String text);
+
+    /**
+     * 喜欢动态*/
+    void likeStory(String storyId,String userId);
+
+    /**
+     * 取消喜欢动态
+     */
+    void cancelLikeStory(String storyId,String userId);
 }

@@ -44,6 +44,10 @@ public interface ContactDao
     @Select("select * from contact where user_id = #{userId}")
     Contact getUserContactById(String userId);
 
+    /**根据账号获取用户的联系人信息*/
+    @Select("select contact_list from contact where user_id = #{userId}")
+    String getContactById(String userId);
+
     /**更新添加联系人请求的备注*/
     @Update("update contact_request set info = #{info},update_date = #{nowDate} where from_user_id = #{fromUserId} and to_user_id = #{toUserid}")
     void updateAddContact(String fromUserId, String toUserid, String info, String nowDate);
