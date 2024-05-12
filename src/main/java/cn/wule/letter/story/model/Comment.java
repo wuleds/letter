@@ -6,7 +6,9 @@ import lombok.Data;
 @Data
 public class Comment
 {
+    String id;
     String storyId;
     String senderId;
     String text;
+    String createDate;
 }

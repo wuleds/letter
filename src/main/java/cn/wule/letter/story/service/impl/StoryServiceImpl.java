@@ -90,7 +90,7 @@ public class StoryServiceImpl implements StoryService {
         Set<String> liker = null;
         try {
             liker = om.readValue(likerJson, new TypeReference<HashSet<String>>() {});
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             liker = new HashSet<>();
         }
         liker.add(userId);

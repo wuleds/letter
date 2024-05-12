@@ -113,10 +113,11 @@ public class StoryController
     @PostMapping("/like/{storyId}")
     public void likeStory(@PathVariable String storyId)
     {
+        String myId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         if(storyId == null || storyId.isEmpty()){
             return;
         }
-        storyService.likeStory(storyId,((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId());
+        storyService.likeStory(storyId,myId);
     }
 
     /**取消喜爱动态*/

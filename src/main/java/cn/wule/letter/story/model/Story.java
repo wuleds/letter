@@ -11,7 +11,7 @@ public class Story
     String text;
     String image;
     String video;
-    String likeCount;
+    int likeCount;
     String liker;
     String comment;
     String createDate;
